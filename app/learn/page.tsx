@@ -405,9 +405,16 @@ function ActivityCard({
   const savedAiResult = saved.aiResponse ? parseAiResult(saved.aiResponse) : null;
   const savedHandsonResult = saved.handsonAiResponse ? parseAiResult(saved.handsonAiResponse) : null;
 
-  const [quizDone, setQuizDone] = useState(false);
-  const [handsDone, setHandsDone] = useState(false);
+  const [quizDone, setQuizDone] = useState(!!saved.quizAnswers);
+  const [handsDone, setHandsDone] = useState(!!saved.handsonAiResponse);
   const combinedFiredRef = useRef(false);
+
+  // Restore completion on mount for single-part activity types
+  useEffect(() => {
+    if (activity.type === "quiz" && saved.quizAnswers) onDone?.();
+    else if (activity.type === "ai_open" && saved.aiResponse) onDone?.();
+    else if (activity.type === "hands_on" && activity.aiCheck && saved.handsonAiResponse) onDone?.();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Combined: unlock when both parts done
   useEffect(() => {
