@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drupal Interactive Learning Path</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{--bg:#0e0e11;--surface:#16161a;--surface2:#1e1e24;--surface3:#26262e;--border:#2e2e38;--border2:#3a3a48;--text:#e8e8f0;--text2:#9090a8;--text3:#5a5a70;--p1:#7c6cf5;--p1l:#a59af8;--p1bg:#1a1830;--p2:#22c98e;--p2l:#5ddbb0;--p2bg:#0f2620;--p3:#f5a623;--p3l:#f8c06a;--p3bg:#281d08;--p4:#3b9eff;--p4l:#7bbdff;--p4bg:#0d1e33;--p5:#6bc44a;--p5l:#96d478;--p5bg:#14200d;--green:#22c98e;--red:#f0506a;--amber:#f5a623;--radius:10px;--radius-lg:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:260px;min-width:260px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo h1{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;color:var(--text2);letter-spacing:.05em;text-transform:uppercase}
+.sidebar-logo span{color:var(--p1l)}
+.phase-nav{padding:12px 0;flex:1}
+.phase-group{margin-bottom:4px}
+.phase-header-btn{width:100%;display:flex;align-items:center;gap:10px;padding:9px 20px;background:none;border:none;cursor:pointer;text-align:left;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;transition:color .15s}
+.phase-header-btn:hover,.phase-header-btn.active{color:var(--text)}
+.phase-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.week-items{display:none}
+.phase-group.open .week-items{display:block}
+.week-btn{width:100%;display:flex;align-items:center;gap:8px;padding:6px 20px 6px 52px;background:none;border:none;cursor:pointer;text-align:left;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text3);transition:color .15s}
+.week-btn:hover{color:var(--text2)}
+.week-btn.active{color:var(--text)}
+.week-dot{width:5px;height:5px;border-radius:50%;background:var(--border2);flex-shrink:0;transition:background .15s}
+.week-btn.active .week-dot{background:currentColor}
+.sidebar-progress{padding:16px 20px;border-top:1px solid var(--border)}
+.sp-label{font-size:11px;color:var(--text3);margin-bottom:8px;display:flex;justify-content:space-between}
+.sp-bar{height:3px;background:var(--border);border-radius:2px}
+.sp-fill{height:3px;border-radius:2px;background:var(--p1l);transition:width .4s}
+.main{flex:1;overflow-y:auto}
+.content{max-width:800px;padding:40px 48px;margin:0 auto}
+.day-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:32px}
+.day-number{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:6px 10px;border-radius:6px;letter-spacing:.05em;flex-shrink:0;margin-top:4px}
+.day-meta h2{font-size:22px;font-weight:600;color:var(--text);line-height:1.3}
+.day-meta p{font-size:14px;color:var(--text2);margin-top:6px;line-height:1.6}
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:20px;overflow:hidden}
+.section-card-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.section-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.section-card-header h3{font-size:15px;font-weight:600;color:var(--text)}
+.section-card-header p{font-size:12px;color:var(--text2);margin-top:2px}
+.section-card-body{padding:20px}
+.read-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.read-item:last-child{border-bottom:none}
+.read-bullet{width:6px;height:6px;border-radius:50%;background:var(--text3);flex-shrink:0;margin-top:6px}
+.read-item p{font-size:13px;color:var(--text2);line-height:1.6}
+.read-item p strong{color:var(--text);font-weight:500}
+.read-link{display:inline-block;margin-top:6px;font-size:12px;color:var(--p1l);text-decoration:none;font-family:'IBM Plex Mono',monospace}
+.read-link:hover{text-decoration:underline}
+.activity-steps{display:flex;flex-direction:column;gap:12px}
+.activity-step{display:flex;gap:14px;padding:14px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)}
+.step-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.step-content h4{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.step-content p{font-size:13px;color:var(--text2);line-height:1.5}
+.code-block{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-top:8px;color:var(--p2l);overflow-x:auto;white-space:pre;line-height:1.6}
+.quiz-q{font-size:14px;font-weight:500;color:var(--text);line-height:1.5;margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);line-height:1.5;transition:all .15s;text-align:left}
+.quiz-opt:hover:not(:disabled){border-color:var(--border2);color:var(--text)}
+.quiz-opt.selected{border-color:var(--p1l);color:var(--text);background:var(--p1bg)}
+.quiz-opt.correct{border-color:var(--green);color:var(--green);background:rgba(34,201,142,.08)}
+.quiz-opt.wrong{border-color:var(--red);color:var(--red);background:rgba(240,80,106,.08)}
+.quiz-opt:disabled{cursor:default}
+.quiz-submit{margin-top:14px;padding:10px 20px;border:1px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.quiz-submit:hover{background:var(--surface2)}
+.quiz-submit:disabled{opacity:.4;cursor:default}
+.quiz-feedback{margin-top:12px;padding:14px 16px;border-radius:var(--radius);font-size:13px;line-height:1.6;display:none}
+.quiz-feedback.show{display:block}
+.quiz-feedback.pass{background:rgba(34,201,142,.08);border:1px solid var(--green);color:var(--green)}
+.quiz-feedback.fail{background:rgba(240,80,106,.08);border:1px solid var(--red);color:var(--red)}
+.quiz-nav{display:flex;align-items:center;gap:10px;margin-top:16px}
+.qnav-btn{padding:8px 16px;background:none;border:1px solid var(--border2);border-radius:var(--radius);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s}
+.qnav-btn:hover{border-color:var(--border);color:var(--text)}
+.quiz-counter{font-size:12px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.ai-check-area{display:flex;flex-direction:column;gap:10px}
+.ai-prompt{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:8px}
+.ai-input{width:100%;min-height:80px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;resize:vertical;transition:border-color .15s;line-height:1.5}
+.ai-input:focus{outline:none;border-color:var(--border2)}
+.ai-submit{align-self:flex-start;padding:10px 20px;background:var(--p1bg);border:1px solid var(--p1);border-radius:var(--radius);color:var(--p1l);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:8px}
+.ai-submit:hover{background:rgba(124,108,245,.15)}
+.ai-submit:disabled{opacity:.5;cursor:default}
+.ai-response{padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text2);line-height:1.7;display:none;white-space:pre-wrap}
+.ai-response.show{display:block}
+.ai-score{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:8px;font-family:'IBM Plex Mono',monospace}
+.score-pass{background:rgba(34,201,142,.12);color:var(--green);border:1px solid var(--green)}
+.score-partial{background:rgba(245,166,35,.12);color:var(--amber);border:1px solid var(--amber)}
+.score-fail{background:rgba(240,80,106,.12);color:var(--red);border:1px solid var(--red)}
+.day-nav{display:flex;align-items:center;justify-content:space-between;margin-top:32px;padding-top:24px;border-top:1px solid var(--border)}
+.nav-btn{display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .15s}
+.nav-btn:hover{border-color:var(--border2);color:var(--text)}
+.nav-btn.next{background:var(--p1bg);border-color:var(--p1);color:var(--p1l)}
+.nav-btn.next:hover{background:rgba(124,108,245,.2)}
+.loading-dots span{display:inline-block;width:4px;height:4px;background:currentColor;border-radius:50%;margin:0 2px;animation:dot-bounce 1.2s infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dot-bounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-4px);opacity:1}}
+.day-complete{display:none;align-items:center;gap:10px;padding:14px 18px;background:rgba(34,201,142,.08);border:1px solid var(--green);border-radius:var(--radius);margin-top:16px;font-size:13px;color:var(--green);font-weight:500}
+.day-complete.show{display:flex}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:700px){.sidebar{display:none}.content{padding:24px 20px}}
+</style>
+</head>
+<body>
+<div class="app">
+<nav class="sidebar">
+  <div class="sidebar-logo"><h1>Drupal <span>// Learn</span></h1></div>
+  <div class="phase-nav" id="phase-nav"></div>
+  <div style="padding:12px 20px;border-top:1px solid var(--border)">
+    <button onclick="showApiKeyModal(()=>{})" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text3);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;" onmouseover="this.style.color='var(--text2)'" onmouseout="this.style.color='var(--text3)'">
+      <span>&#128273;</span><span id="key-btn-label">Set API key for AI checks</span>
+    </button>
+  </div>
+  <div class="sidebar-progress">
+    <div class="sp-label"><span>Overall progress</span><span id="prog-pct">0%</span></div>
+    <div class="sp-bar"><div class="sp-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+</nav>
+<main class="main"><div class="content" id="main-content"></div></main>
+</div>
+<script>
+const PHASES=[
+{id:1,label:"Phase 1",name:"Drupal Fundamentals",color:"#7c6cf5",bg:"#1a1830",weeks:[
+{label:"Week 1",name:"Mental model & environment",days:[
+{day:"Day 1",title:"Drupal vs. WordPress vs. Laravel",goal:"Understand where Drupal sits in the CMS/framework landscape and why each tool exists.",
+reading:[
+{title:"What makes Drupal different",body:"Drupal is a <strong>structured content framework</strong> — not a blogging tool (WP) or a code framework (Laravel). It provides a full entity system, configuration management, and a hook/event system out of the box.",link:null},
+{title:"WordPress",body:"Great for blogs and simple sites. PHP but minimal structure. Plugins are quick wins but become tech debt fast. No entity system, no CMI.",link:null},
+{title:"Laravel",body:"A PHP framework — no CMS at all. You build everything from scratch. Maximum flexibility, maximum effort. Drupal sits between WP (easy) and Laravel (total control).",link:"https://www.drupal.org/docs/understanding-drupal"},
+{title:"When to choose Drupal",body:"Enterprise content sites, multi-language, complex permissions, structured content with multiple entity types, decoupled frontends. Drupal shines when content is complex and structured.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"A client needs a marketing blog with 3 pages and a contact form, launching in 2 weeks. Which tool is most appropriate?",options:["Drupal","WordPress","Laravel","They're all equally good"],answer:1,explanation:"WordPress is the right call here. Drupal's learning curve and setup overhead are overkill for a simple marketing blog. Use the right tool for the job."},
+{q:"Which of these is a core strength of Drupal that WordPress does NOT have natively?",options:["Blog post creation","A visual page builder","A structured entity system with configuration management","PHP support"],answer:2,explanation:"Drupal's entity system (nodes, taxonomy, users, custom entities) and CMI (configuration management) are built-in and production-grade. WordPress has neither natively."},
+{q:"Drupal uses a hook system. What best describes what a hook does?",options:["It connects Drupal to external APIs","It lets modules react to or alter Drupal's behavior at defined points","It is a Git integration feature","It provides CSS styling hooks for themes"],answer:1,explanation:"Hooks are named functions Drupal calls at specific lifecycle points. Any module implementing a hook gets to participate — without modifying core code."},
+{q:"You need to build a site with 8 content types, multilingual support, complex editorial workflows, and a React front-end consuming data via API. Which is the best fit?",options:["WordPress","Laravel","Drupal","Any of these with enough plugins"],answer:2,explanation:"This is Drupal's home territory — structured content, multilingual support via core, built-in JSON:API, and robust editorial workflows are all first-class Drupal features."},
+]}},
+{day:"Day 2",title:"Set up DDEV local environment",goal:"Get a fully working Drupal 10/11 site running locally with DDEV.",
+reading:[
+{title:"What DDEV is",body:"DDEV is a local development environment using Docker under the hood. For Drupal it provides PHP, MySQL, Nginx, and Drush pre-configured — no manual LAMP stack setup.",link:"https://ddev.readthedocs.io/en/stable/"},
+{title:"Why not XAMPP/WAMP?",body:"DDEV gives you per-project PHP versions, isolated databases, and a workflow that matches production. Since you already have DDEV experience from previous projects, this should be fast.",link:null},
+],
+activity:{type:"hands_on",title:"Verify your DDEV + Drupal setup",intro:"Run through these steps and use the AI check to verify everything is working.",steps:[
+{n:1,title:"Create a new Drupal project",code:"mkdir my-drupal && cd my-drupal\nddev config --project-type=drupal10\nddev start\nddev composer create drupal/recommended-project ."},
+{n:2,title:"Install Drupal",code:"ddev drush site:install --account-pass=admin -y"},
+{n:3,title:"Launch the site",code:"ddev launch"},
+{n:4,title:"Verify Drush works",code:"ddev drush status"},
+{n:5,title:"Check Drupal version",code:"ddev drush core:status | grep 'Drupal version'"},
+],aiCheck:{prompt:"Paste the output of `ddev drush status` below. I'll verify your setup is correct and flag any issues.",checkGoal:"Verify the student has a working DDEV + Drupal setup by checking drush status output for: Drupal version (10 or 11), database connected, bootstrap done. Give specific feedback on any issues found."}}},
+{day:"Day 3",title:"The Entity System",goal:"Understand Drupal's entity system — the foundation of everything in Drupal.",
+reading:[
+{title:"What is an entity?",body:"In Drupal, almost everything is an entity. Nodes (content), taxonomy terms, users, comments, files, blocks — all are entities. They share a common API for CRUD operations, field support, and rendering.",link:"https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Entity!entity.api.php/group/entity_api"},
+{title:"Content entities vs. config entities",body:"<strong>Content entities</strong> store user data (nodes, users, taxonomy terms) in the database. <strong>Config entities</strong> store site configuration (content types, views, image styles) — exported to YAML files.",link:null},
+{title:"Entity types and bundles",body:"An entity type is the base (e.g. Node). A bundle is a specific type of it (e.g. Article, Page). Fields are attached to bundles. This is your content model.",link:null},
+{title:"The EntityTypeManager",body:"The primary service for working with entities in code. Use it to load, create, query, and delete entities. You'll use this constantly in custom modules.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"You create a 'News Article' content type in Drupal. In entity terms, what is 'Node' and what is 'News Article'?",options:["Node is the bundle, News Article is the entity type","Node is the entity type, News Article is the bundle","They are both entity types","They are both bundles"],answer:1,explanation:"Node is the entity type — the base class. 'News Article' is a bundle — a specific configuration of the Node entity type with its own fields."},
+{q:"You export your Drupal configuration and find a file called node.type.article.yml. What kind of entity is this?",options:["A content entity — it stores user data","A config entity — it defines site configuration","A field entity","A view entity"],answer:1,explanation:"Content type definitions are config entities. They define the structure (bundle) but don't contain the actual articles — those are content entities stored in the database."},
+{q:"Which service would you use in a custom module to programmatically load a node with ID 42?",options:["\\Drupal::database()","\\Drupal::entityTypeManager()","\\Drupal::config()","\\Drupal::service('node')"],answer:1,explanation:"\\Drupal::entityTypeManager()->getStorage('node')->load(42) is the correct approach. Always use the Entity API rather than direct database queries for entity operations."},
+]}},
+{day:"Day 4",title:"Composer Workflow for Drupal",goal:"Master the Composer workflow that every professional Drupal developer uses daily.",
+reading:[
+{title:"Why Composer?",body:"Drupal 8+ moved to Composer for dependency management. Every module, library, and core update goes through Composer. Understanding it is non-negotiable for professional Drupal development.",link:"https://www.drupal.org/docs/develop/using-composer"},
+{title:"Key commands",body:"<strong>composer require drupal/module_name</strong> — install a module. <strong>composer update drupal/core-* --with-all-dependencies</strong> — update core. <strong>composer show drupal/*</strong> — list installed Drupal packages.",link:null},
+{title:"composer.json vs. composer.lock",body:"composer.json defines what you want. composer.lock records exactly what was installed. Commit both to Git. Never edit composer.lock manually.",link:null},
+],
+activity:{type:"hands_on",title:"Install and enable a contrib module via Composer",intro:"Practice the full Composer → Drush workflow for adding a module.",steps:[
+{n:1,title:"Install the Admin Toolbar module",code:"ddev composer require drupal/admin_toolbar"},
+{n:2,title:"Enable it with Drush",code:"ddev drush pm:enable admin_toolbar admin_toolbar_tools -y"},
+{n:3,title:"Clear cache",code:"ddev drush cr"},
+{n:4,title:"Verify it's enabled",code:"ddev drush pm:list --status=enabled | grep admin_toolbar"},
+{n:5,title:"Check composer.lock was updated",code:"git diff composer.lock | head -20"},
+],aiCheck:{prompt:"Paste the output of `ddev drush pm:list --status=enabled | grep admin_toolbar`. I'll confirm the module is correctly installed.",checkGoal:"Verify the student has correctly installed and enabled the admin_toolbar module. Output should show admin_toolbar and admin_toolbar_tools with 'Enabled' status. Give specific feedback."}}},
+{day:"Day 5",title:"Core vs. Contrib vs. Custom Modules",goal:"Know when to use core, when to reach for contrib, and when to write custom.",
+reading:[
+{title:"Core modules",body:"Ship with Drupal. Maintained by the core team. Examples: Views, Layout Builder, JSON:API, Media. Use core first — it's battle-tested with no additional maintenance burden.",link:null},
+{title:"Contrib modules",body:"Community-maintained on drupal.org. Over 50,000 exist. Quality varies. Check: install count, active maintenance, Drupal 10/11 compatibility, and last release date.",link:"https://www.drupal.org/project/project_module"},
+{title:"Custom modules",body:"Code you write yourself. Only build custom when core/contrib can't do it. Custom code = your maintenance burden forever.",link:null},
+{title:"The decision framework",body:"Core → Contrib → Custom. Never hack core or contrib — use hooks and event subscribers to alter behavior instead. This is non-negotiable.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"A client needs a simple contact form on their Drupal site. What should you do?",options:["Build a custom module with Form API","Install the Contact contrib module","Enable Drupal core's Contact module","Use Views to build a form"],answer:2,explanation:"Drupal core ships with a Contact module. Always check core first. Zero maintenance overhead and battle-tested."},
+{q:"You find a contrib module that does 80% of what you need, but requires patching its code for your edge case. Best approach?",options:["Patch the module files directly","Fork the module and maintain your own version","Write a custom module that alters behavior using hooks","Use a different contrib module"],answer:2,explanation:"Use hooks or event subscribers to alter behavior without touching contrib files. Your customization survives module updates. Direct patching breaks on every update."},
+{q:"When evaluating a contrib module on drupal.org, which factors matter MOST?",options:["Number of screenshots on the project page","Active maintenance, Drupal 10/11 compatibility, install count, recent releases","Whether it has a video tutorial","The module's color scheme in the admin UI"],answer:1,explanation:"Unmaintained modules are security liabilities. Check: compatible with your Drupal version? Recent release? How many sites use it? Active maintainer?"},
+]}},
+{day:"Day 6",title:"Drush CLI Essentials",goal:"Build muscle memory with the Drush commands you'll use every single day.",
+reading:[
+{title:"What Drush is",body:"Drush (Drupal Shell) is the command-line tool for Drupal — like artisan for Laravel or wp-cli for WordPress, but more powerful. You'll use it constantly.",link:"https://www.drush.org/"},
+{title:"Most-used commands",body:"<strong>drush cr</strong> — rebuild caches. <strong>drush cex/cim</strong> — export/import config. <strong>drush updb</strong> — run database updates. <strong>drush uli</strong> — generate a one-time login URL. <strong>drush php:eval</strong> — run arbitrary PHP.",link:null},
+],
+activity:{type:"hands_on",title:"Drush command drill",intro:"Run each command and make sure you understand the output.",steps:[
+{n:1,title:"Rebuild caches",code:"ddev drush cr"},
+{n:2,title:"Check site status",code:"ddev drush status"},
+{n:3,title:"List enabled modules",code:"ddev drush pm:list --status=enabled"},
+{n:4,title:"Export config",code:"ddev drush cex -y && ls config/sync/ | head -10"},
+{n:5,title:"Generate a login link",code:"ddev drush uli"},
+{n:6,title:"Run a quick PHP snippet",code:"ddev drush php:eval \"echo \\Drupal::VERSION;\""},
+],aiCheck:{prompt:"After running `ddev drush cex -y`, paste the result of `ls config/sync/ | wc -l` (the count of config files exported). I'll verify your config export is working correctly.",checkGoal:"Verify the student has successfully exported Drupal configuration. They should show a number above 30 (typically 50-100+ YAML files). Give feedback and explain why config export is important in the professional workflow."}}},
+{day:"Day 7",title:"Week 1 Review",goal:"Consolidate everything from Week 1 with a comprehensive open-ended challenge.",
+reading:[
+{title:"Review checklist",body:"Before answering, mentally test yourself: (1) Can you explain Drupal vs WP vs Laravel in 30 seconds? (2) Can you name 5 entity types? (3) Do you know the Composer+Drush workflow for adding a module? (4) Can you name 5 Drush commands?",link:null},
+{title:"What's coming in Week 2",body:"Hooks, event subscribers, and services — the three mechanisms that make Drupal extensible. This is where Drupal development really begins.",link:null},
+],
+activity:{type:"ai_open",prompt:"Without looking at any notes, answer all three: (1) A client asks why you'd recommend Drupal over WordPress for their enterprise intranet. What do you say? (2) What is the difference between a content entity and a config entity — give a concrete example of each. (3) Walk me through the exact steps to add a new contrib module to a DDEV Drupal project.",checkGoal:"Evaluate the student's understanding across three areas: Drupal positioning, entity types distinction, and the Composer+Drush workflow. Score 0-10 and give specific constructive feedback. Look for: correct entity distinction with examples, correct Composer require + drush pm:enable workflow, and a compelling business case for Drupal."}},
+]},
+{label:"Week 2",name:"Hooks, events & services",days:[
+{day:"Day 8",title:"How Drupal's Hook System Works",goal:"Understand Drupal's hook system — the original extension mechanism.",
+reading:[
+{title:"What is a hook?",body:"A hook is a named PHP function that Drupal calls at specific points. If your module is called mymodule, implementing mymodule_node_presave($node) means Drupal calls your function every time a node is about to be saved.",link:"https://api.drupal.org/api/drupal/core%21core.api.php/group/hooks"},
+{title:"How Drupal discovers hooks",body:"Drupal scans for functions matching {module_name}_{hook_name}. This is why your module machine name matters — it's the prefix for all your hooks.",link:null},
+{title:"Common hooks",body:"<strong>hook_entity_presave</strong> — before any entity saves. <strong>hook_form_alter</strong> — modify any form. <strong>hook_theme</strong> — register theme functions. <strong>hook_install</strong> — run code on module install.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"Your module is named news_manager. What is the correct function name to implement hook_node_presave?",options:["function hook_node_presave($node)","function node_presave_news_manager($node)","function news_manager_node_presave($node)","function news_manager::node_presave($node)"],answer:2,explanation:"Hook implementations follow the pattern: {module_name}_{hook_name}. So news_manager_node_presave() is correct. Drupal's module system discovers it automatically."},
+{q:"You want to add custom validation to Drupal's user registration form. Which hook is most appropriate?",options:["hook_user_presave","hook_form_alter or hook_form_user_register_form_alter","hook_user_login","hook_theme"],answer:1,explanation:"hook_form_alter (or the more specific hook_form_FORM_ID_alter) lets you add validators, modify fields, or change submission handlers on any form without touching core."},
+{q:"What is the key limitation of hooks compared to event subscribers?",options:["Hooks can't modify entities","Hooks can only run once per request","Hooks don't support dependency injection — you can't easily inject services","Hooks are deprecated in Drupal 10"],answer:2,explanation:"Hooks are procedural functions — they can't use constructor injection. Event subscribers are classes that can inject services properly. This is why Drupal has been moving toward events for new functionality."},
+]}},
+{day:"Day 9",title:"Write Your First Hook",goal:"Build a real hook implementation in a custom module from scratch.",
+reading:[
+{title:"Minimum module structure",body:"A Drupal module needs: a folder in modules/custom/, a .info.yml file declaring it, and a .module file for hooks. That's it to get started.",link:null},
+{title:"The .info.yml file",body:"Declares the module name, description, Drupal core compatibility, and package. Drupal won't recognize the module without it.",link:null},
+],
+activity:{type:"hands_on",title:"Build a custom module with a working hook",intro:"Create a Drupal module that reacts to node saves using hook_node_presave.",steps:[
+{n:1,title:"Create the module directory",code:"mkdir -p web/modules/custom/my_first_module"},
+{n:2,title:"Create the .info.yml",code:"# web/modules/custom/my_first_module/my_first_module.info.yml\nname: 'My First Module'\ntype: module\ndescription: 'Learning hooks in Drupal'\ncore_version_requirement: ^10 || ^11\npackage: Custom"},
+{n:3,title:"Create the .module file",code:"<?php\n/**\n * Implements hook_node_presave().\n */\nfunction my_first_module_node_presave($node) {\n  \\Drupal::messenger()->addStatus(\n    'Hook fired! Saving: ' . $node->getTitle()\n  );\n}"},
+{n:4,title:"Enable the module",code:"ddev drush pm:enable my_first_module -y && ddev drush cr"},
+{n:5,title:"Test it",body:"Create or edit any node in your Drupal site. You should see a status message at the top of the page after saving."},
+],aiCheck:{prompt:"Share your my_first_module.module file content AND describe what happened when you saved a node. Did the message appear?",checkGoal:"Verify the student has created a working Drupal module with hook_node_presave. Check: correct .module file PHP, hook name follows {module}_{hook} pattern correctly, and they confirmed the hook fired on node save. Give specific feedback."}}},
+{day:"Day 10",title:"Event Subscribers",goal:"Understand event subscribers and when to use them over hooks.",
+reading:[
+{title:"Symfony events in Drupal",body:"Drupal is built on Symfony. Symfony uses an EventDispatcher system. Drupal exposes many events and you can subscribe to them using a properly injected class.",link:"https://www.drupal.org/docs/creating-custom-modules/subscribe-to-and-dispatch-events"},
+{title:"Structure of an event subscriber",body:"You need: (1) A class implementing EventSubscriberInterface. (2) A static getSubscribedEvents() method. (3) A registration in your module's services.yml.",link:null},
+{title:"When to use which",body:"<strong>Hooks</strong>: altering forms, entities, theme suggestions — anything in .module files. <strong>Event subscribers</strong>: Symfony kernel events, business logic needing injected services, anything requiring proper DI.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"What interface must your class implement to be an event subscriber in Drupal?",options:["HookSubscriberInterface","EventSubscriberInterface","DrupalEventInterface","SubscriberInterface"],answer:1,explanation:"EventSubscriberInterface from Symfony\\Component\\EventDispatcher is required. It mandates the static getSubscribedEvents() method that tells Drupal which events your class handles."},
+{q:"You need to inject the entity_type.manager service into your event subscriber. How do you do this correctly?",options:["Call \\Drupal::entityTypeManager() inside the event method","Use constructor injection — add it as a constructor parameter and declare it in services.yml","Use \\Drupal::service() inside the event method","Event subscribers cannot use services"],answer:1,explanation:"Constructor injection is the correct Drupal/Symfony pattern. Declare the service as a constructor argument, type-hint it, store it as a property. This makes it testable and follows proper DI principles."},
+{q:"Where must you register your event subscriber for Drupal to discover it?",options:["In the .module file","In a .routing.yml file","In your module's .services.yml file with the event_subscriber tag","In settings.php"],answer:2,explanation:"Event subscribers must be registered as services in your_module.services.yml with the tag 'name: event_subscriber'. Without this registration Drupal won't know your class exists."},
+]}},
+{day:"Day 11",title:"Services & Dependency Injection",goal:"Understand Drupal's service container and the dependency injection pattern.",
+reading:[
+{title:"What is a service?",body:"A service is a reusable PHP object registered in the service container. Drupal's core provides hundreds: entity_type.manager, database, config.factory, current_user, messenger, etc.",link:"https://api.drupal.org/api/drupal/services"},
+{title:"services.yml",body:"Each module defines services in a {module}.services.yml file. You register your class, give it an ID, and declare its constructor dependencies (other services by their service ID).",link:null},
+{title:"Accessing services correctly",body:"In classes: constructor injection (always preferred). In .module procedural code: \\Drupal::service('service.id') or shorthand like \\Drupal::entityTypeManager(). Never use \\Drupal:: inside a class that could receive injection.",link:null},
+],
+activity:{type:"hands_on",title:"Create a custom service with dependency injection",intro:"Register a service in services.yml and inject entity_type.manager into it.",steps:[
+{n:1,title:"Create services.yml",code:"# my_first_module.services.yml\nservices:\n  my_first_module.node_helper:\n    class: Drupal\\my_first_module\\NodeHelper\n    arguments: ['@entity_type.manager']"},
+{n:2,title:"Create src/NodeHelper.php",code:"<?php\nnamespace Drupal\\my_first_module;\nuse Drupal\\Core\\Entity\\EntityTypeManagerInterface;\n\nclass NodeHelper {\n  protected EntityTypeManagerInterface $entityTypeManager;\n\n  public function __construct(EntityTypeManagerInterface $em) {\n    $this->entityTypeManager = $em;\n  }\n\n  public function getLatestNodes(int $count = 5): array {\n    $storage = $this->entityTypeManager->getStorage('node');\n    $ids = $storage->getQuery()\n      ->accessCheck(TRUE)->sort('created','DESC')\n      ->range(0,$count)->execute();\n    return $storage->loadMultiple($ids);\n  }\n}"},
+{n:3,title:"Rebuild and test",code:"ddev drush cr\nddev drush php:eval \"$nodes = \\Drupal::service('my_first_module.node_helper')->getLatestNodes(3); foreach($nodes as $n) { echo $n->getTitle().\"\\n\"; }\""},
+],aiCheck:{prompt:"Paste your NodeHelper.php content AND the output of the drush php:eval command. I'll verify your service and DI are set up correctly.",checkGoal:"Verify the student has correctly created a Drupal service with constructor injection of entity_type.manager. Check: correct namespace, type-hinted constructor, service YAML declaration with @entity_type.manager argument, and that it successfully loaded nodes. Give specific feedback."}}},
+{day:"Day 12",title:"Explore the Examples Module",goal:"Study real working implementations of Drupal's core APIs.",
+reading:[
+{title:"Why the Examples module matters",body:"It's the best learning resource after official docs. Each sub-module demonstrates one API pattern with heavily commented, working code you can run and modify.",link:"https://www.drupal.org/project/examples"},
+{title:"What to study",body:"Focus on: <strong>event_subscriber</strong> (how to subscribe to events), <strong>form_api</strong> (complete Form API example), <strong>services_example</strong> (services and DI patterns). These three cover 80% of what you'll build.",link:null},
+],
+activity:{type:"hands_on",title:"Install and study the Examples module",intro:"Install Examples and study three specific sub-modules in depth.",steps:[
+{n:1,title:"Install the Examples module",code:"ddev composer require drupal/examples\nddev drush pm:enable examples -y && ddev drush cr"},
+{n:2,title:"Study event_subscriber example",code:"cat web/modules/contrib/examples/modules/event_subscriber_example/src/EventSubscriber/EventSubscriberExample.php"},
+{n:3,title:"Study Form API example",code:"cat web/modules/contrib/examples/modules/form_api/src/Form/FormApiExampleSimpleForm.php"},
+{n:4,title:"Study services example",code:"cat web/modules/contrib/examples/modules/services_example/src/TimestampFormatterService.php"},
+],aiCheck:{prompt:"After studying the Examples module, answer: (1) In the EventSubscriberExample, what event does it subscribe to and what does the handler do? (2) What are the three main methods in a Form API class and what does each do?",checkGoal:"Evaluate the student's understanding of the Examples module. They should correctly identify the subscribed event and handler, and understand buildForm (structure), validateForm (validation), submitForm (processing). Score and give detailed feedback."}}},
+{day:"Day 13",title:"Week 2 Review",goal:"Solidify your understanding of hooks, events, and services before moving to site building.",
+reading:[
+{title:"Consolidation check",body:"Can you now: (1) Write a hook implementation from memory? (2) Explain when to use a hook vs. an event subscriber? (3) Create a service with DI in services.yml? These are daily tasks in Drupal development.",link:null},
+],
+activity:{type:"ai_open",prompt:"Answer these three without notes: (1) Write out (from memory) the minimum code needed for a custom Drupal module that implements hook_form_alter to add a custom submit handler to every form. Include the .info.yml and .module file. (2) Explain constructor injection — why is it preferred over calling \\Drupal::service() inside a class? (3) What tag must an event subscriber service have in services.yml?",checkGoal:"Evaluate the student's ability to write hook and service code from memory. Check: correct hook pattern, valid PHP syntax, understanding of DI benefits (testability, loose coupling), and correct 'event_subscriber' tag knowledge. Score 0-10 with specific feedback on each part."}},
+]},
+{label:"Week 3",name:"Configuration management & mini-project",days:[
+{day:"Day 14",title:"Configuration Management (CMI) Deep Dive",goal:"Master the CMI workflow — the foundation of professional Drupal development environments.",
+reading:[
+{title:"Config vs. content — the critical distinction",body:"Configuration is anything that defines how your site works (content types, views, roles, etc.). Content is actual data (nodes, users, files). <strong>Config lives in YAML files. Content lives in the database.</strong> This is fundamental.",link:null},
+{title:"The professional workflow",body:"Dev: make changes in UI → drush cex → commit to Git. Staging/Prod: git pull → drush cim → drush cr. Never manually copy database changes between environments.",link:"https://www.drupal.org/docs/configuration-management"},
+{title:"Config splits",body:"The Config Split module lets you have different config per environment — e.g., Devel module only on dev, different caching on prod. Essential for real projects.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"You create a new content type on your dev environment. What is the correct sequence to move it to production?",options:["Copy the database from dev to prod","Export config (drush cex), commit to Git, deploy, then import config (drush cim) on prod","Recreate the content type manually on prod","Use the Drupal migration system"],answer:1,explanation:"CMI workflow: dev changes → drush cex → Git commit → deploy → drush cim on prod. Reproducible, version-controlled, reviewable. Manual recreation is error-prone and doesn't scale."},
+{q:"A teammate changed a View directly on production without exporting config. What problem does this create?",options:["Nothing — it's fine to make changes on production","The next config import from Git will overwrite their production changes","The View will automatically sync to dev","The config export will fail"],answer:1,explanation:"This is exactly the anti-pattern CMI solves. If your teammate made changes on prod without exporting, a future `drush cim` from Git will blow away their changes. Always: dev → export → deploy → import."},
+{q:"Which file would contain the configuration for a 'Product' content type you created?",options:["content.type.product.yml","node.type.product.yml","product.content_type.yml","drupal.node.product.yml"],answer:1,explanation:"Content type config files follow the pattern node.type.{machine_name}.yml. Each config object in Drupal has a specific naming convention based on its config schema."},
+]}},
+{day:"Day 15",title:"Themes vs. Modules — What Goes Where",goal:"Understand the hard boundary between display logic and business logic in Drupal.",
+reading:[
+{title:"The golden rule",body:"Modules handle <strong>business logic</strong> (what data exists, how it's processed, what happens when events fire). Themes handle <strong>display logic</strong> (how data is presented, HTML structure, CSS, JS).",link:null},
+{title:"Common mistakes",body:"Putting CSS in a module's .module file. Writing SQL queries in a Twig template. Using template_preprocess to do database lookups. All of these violate the boundary and make your code hard to maintain.",link:null},
+{title:"The preprocess layer",body:"template_preprocess functions (in .theme or .module files) are the bridge — they prepare variables for templates but shouldn't contain business logic. Keep them thin.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"Where should you put code that calculates a discount price based on user role and product category?",options:["In a Twig template using filters","In a template_preprocess function in the .theme file","In a custom module service or hook","In a View's rewrite field settings"],answer:2,explanation:"Business logic (calculation, data retrieval, rules) belongs in a module — ideally a service. Themes should only receive pre-prepared data. This keeps your logic testable and reusable."},
+{q:"Where should you put the HTML structure for a custom card component that displays event teasers?",options:["In a .module file using render arrays","In a custom Twig template file","In a PHP class in your module's src/ folder","In a custom block plugin's build() method"],answer:1,explanation:"HTML structure belongs in a Twig template. The module provides data; the template structures it. A block plugin's build() method returns a render array pointing TO a template, not containing raw HTML."},
+]}},
+{day:"Day 16",title:"Mini-Project: Blog Site",goal:"Build a complete structured content site using everything from Phases 1-2.",
+reading:[
+{title:"What you're building",body:"A blog with: custom Article content type with fields, a custom Tag taxonomy, a Views listing page, a custom hook that auto-sets a field on save, and all config exported to Git.",link:null},
+],
+activity:{type:"hands_on",title:"Build the blog site",intro:"Follow these steps to build a complete mini-project site.",steps:[
+{n:1,title:"Create a Tag taxonomy vocabulary",body:"Admin → Structure → Taxonomy → Add vocabulary. Machine name: tags"},
+{n:2,title:"Customize the Article content type",body:"Add fields: field_tags (entity reference to Tags), field_reading_time (integer), field_featured (boolean). Configure display modes."},
+{n:3,title:"Build a Views listing page",code:"# Create a View: /blog\n# Shows: published Articles, sorted by date DESC\n# Fields: Title, field_tags, field_reading_time, created date\n# Add exposed filter for field_tags"},
+{n:4,title:"Add a hook to auto-calculate reading time",code:"// In my_first_module.module\nfunction my_first_module_node_presave($node) {\n  if ($node->bundle() === 'article') {\n    $body = $node->get('body')->value ?? '';\n    $words = str_word_count(strip_tags($body));\n    $node->set('field_reading_time', max(1, round($words / 200)));\n  }\n}"},
+{n:5,title:"Export all config",code:"ddev drush cex -y\ngit add config/ && git commit -m 'Blog site initial configuration'"},
+],aiCheck:{prompt:"Describe your blog site: (1) What fields did you add to the Article content type? (2) Paste your hook_node_presave implementation. (3) What does your Views listing look like?",checkGoal:"Verify the student has built a working blog site with custom fields, a Views listing, and a working hook. Check that the reading time calculation uses word count and body field, that Views is properly configured, and config was exported. Give specific constructive feedback."}}},
+{day:"Day 17",title:"Mini-Project: Config Workflow & Git",goal:"Practice the complete dev-to-deployment config workflow with Git.",
+reading:[
+{title:"The config loop",body:"Every configuration change on dev should immediately be: (1) exported with drush cex, (2) committed to Git with a descriptive message, (3) importable on any other environment with drush cim. This is the discipline that separates professional Drupal devs.",link:null},
+],
+activity:{type:"hands_on",title:"Practice the full config export → Git → import cycle",intro:"Simulate moving your blog config to a 'staging' environment.",steps:[
+{n:1,title:"Make a config change",body:"Go to your Article content type and add a new field: field_subtitle (plain text). Save."},
+{n:2,title:"Export and review the change",code:"ddev drush cex -y\ngit diff config/sync/"},
+{n:3,title:"Commit the change",code:"git add config/sync/\ngit commit -m 'Add subtitle field to Article content type'"},
+{n:4,title:"Simulate an import on 'staging'",code:"# Reset the config to the committed state, then re-import\nddev drush cim -y\nddev drush cr"},
+{n:5,title:"Verify the field exists",code:"ddev drush php:eval \"$fields = \\Drupal::service('entity_field.manager')->getFieldDefinitions('node','article'); echo implode(', ', array_keys($fields));\""},
+],aiCheck:{prompt:"Paste the output of `git log --oneline -5` from your project. Show me your last 5 commits. I'll verify your config workflow discipline.",checkGoal:"Verify the student has been committing config changes with descriptive messages. Check for meaningful commit messages (not just 'config update') and that the log shows incremental config changes. Give feedback on commit message quality and workflow."}}},
+{day:"Day 18",title:"Phase 1 Retrospective",goal:"Consolidate everything from Phase 1 and prepare your mindset for Phase 2.",
+reading:[
+{title:"What you now know",body:"Entity system, hooks, event subscribers, services, DI, Composer, Drush, CMI, and the theme vs. module boundary. This is the foundation everything else is built on.",link:null},
+{title:"Heading into Phase 2",body:"Phase 2 is where you become a real Drupal site builder — Views, Paragraphs, Layout Builder, and content architecture. You'll build real client-quality sites.",link:null},
+],
+activity:{type:"ai_open",prompt:"Phase 1 final reflection — answer all three: (1) What was the hardest concept in Phase 1 for you and why? (2) Explain the complete flow of a Drupal request from browser URL to rendered HTML — mention routing, controllers, hooks, and render arrays. (3) If a junior dev asked you 'what's the most important habit to build as a Drupal developer', what would you tell them and why?",checkGoal:"Evaluate the student's Phase 1 comprehension. The request flow answer should mention: routing.yml → controller → render array → theme system → Twig templates. The habit answer should ideally be about config management, reading core code, or running drush cr. Score 0-10 with constructive Phase 1 summary feedback."}},
+]},
+]},
+{id:2,label:"Phase 2",name:"Site Building",color:"#22c98e",bg:"#0f2620",weeks:[
+{label:"Week 1",name:"Views & dynamic content",days:[
+{day:"Day 1",title:"Views Module Fundamentals",goal:"Learn to build dynamic pages and blocks using Drupal's most powerful core module.",
+reading:[
+{title:"What Views does",body:"Views lets you query the database and display results as pages, blocks, feeds, or REST exports — without writing SQL. It's one of Drupal's most powerful features and you'll use it on every project.",link:"https://www.drupal.org/docs/8/core/modules/views"},
+{title:"Key concepts",body:"<strong>Display</strong>: how to show the view (page, block, REST). <strong>Fields</strong>: which entity fields to show. <strong>Filters</strong>: which content to include. <strong>Sort criteria</strong>: ordering. <strong>Relationships</strong>: joining to related entities. <strong>Contextual filters</strong>: dynamic filtering based on URL.",link:null},
+{title:"Format options",body:"Unformatted list, HTML list, Table, Grid, Bootstrap-compatible formats. Each changes how results are rendered. Table format is great for admin UIs; unformatted is best for themed output.",link:null},
+],
+activity:{type:"hands_on",title:"Build three essential Views",intro:"Create a page view, a block view, and a filtered view — the three most common patterns.",steps:[
+{n:1,title:"Views listing page — /articles",body:"Admin → Structure → Views → Add view. Content type: Article. Page at /articles. Fields: Title (linked), Body (trimmed 200), Created date. Filter: Published = Yes. Sort: Created DESC."},
+{n:2,title:"Recent articles block",body:"Add a new Display to your view → Block display. Limit to 5 items. Display: teaser. Place the block in the sidebar region."},
+{n:3,title:"Add a tag exposed filter",body:"Add filter: field_tags. Check 'Expose this filter'. Set label to 'Filter by tag'. Save and test at /articles."},
+{n:4,title:"Export config",code:"ddev drush cex -y && ls config/sync/ | grep views"},
+],aiCheck:{prompt:"Describe your Views setup: (1) What fields are on your /articles page? (2) What filters did you add? (3) Does the exposed filter work? Paste the first 10 lines of one of your views YAML files.",checkGoal:"Verify the student created working Views with page display, fields, filters, and exposed filter. Check that they exported config correctly. Give specific feedback on Views configuration best practices."}}},
+{day:"Day 2",title:"Contextual Filters & Relationships",goal:"Master advanced Views techniques for building complex dynamic listings.",
+reading:[
+{title:"Contextual filters",body:"A contextual filter dynamically filters based on a URL argument or context. Example: /taxonomy/term/5 shows all nodes tagged with term ID 5. Drupal's taxonomy term pages use this pattern.",link:null},
+{title:"Relationships",body:"Relationships allow you to bring in data from related entities. Example: on an Article view, add a relationship to 'Author' to display fields from the author's user profile.",link:null},
+{title:"When to use Views vs. custom code",body:"Views for: listing pages, admin tables, blocks of content. Custom code for: complex business logic in display, heavy calculations, non-entity data sources.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"You want a Views page at /author/[username] that shows all published articles by that author. What Views feature do you use?",options:["A regular filter set to the specific author","A contextual filter on the Author UID or username","A relationship to the user entity","A Views argument plugin"],answer:1,explanation:"Contextual filters handle dynamic URL-based filtering. You add a contextual filter for 'Author: UID' or 'Author: Name', set it to get the value from the URL, and Views dynamically filters by whoever is in the path."},
+{q:"You want to show the author's profile picture next to each article in a View. What do you need first?",options:["A custom module to join the tables","A Relationship to the 'Content: Author' user entity","An exposed filter for the user","A second View embedded in the first"],answer:1,explanation:"Add a Relationship: 'Content: Author' to the View. Once the relationship is added, you can add fields from the related user entity — including their profile picture."},
+]}},
+{day:"Day 3",title:"Paragraphs Module",goal:"Use Paragraphs to build flexible, component-based page layouts.",
+reading:[
+{title:"What Paragraphs does",body:"Paragraphs is a contrib module that lets you attach different types of reusable content components to nodes. Think of it as Drupal's native component system — each paragraph type is like a content block.",link:"https://www.drupal.org/project/paragraphs"},
+{title:"Common paragraph types",body:"Text block, Image + text, Quote, Call to action button, Video embed, Card grid, Hero banner. Each is a bundle of the Paragraph entity type with its own fields.",link:null},
+{title:"Paragraphs vs. Layout Builder",body:"<strong>Paragraphs</strong>: structured content components, defined by editors in a fixed order. Best for controlled content structures. <strong>Layout Builder</strong>: drag-and-drop layout control, more flexible but harder to control.",link:null},
+],
+activity:{type:"hands_on",title:"Set up Paragraphs for a landing page",intro:"Install Paragraphs and create a Landing Page content type with flexible sections.",steps:[
+{n:1,title:"Install Paragraphs",code:"ddev composer require drupal/paragraphs\nddev drush pm:enable paragraphs -y && ddev drush cr"},
+{n:2,title:"Create paragraph types",body:"Admin → Structure → Paragraph types. Create: 'Text Block' (body field), 'Hero Banner' (title + subtitle + background image), 'CTA Button' (label + URL fields)."},
+{n:3,title:"Create Landing Page content type",body:"Add a field: field_sections. Type: Paragraph (Entity reference revisions). Allow unlimited. Select all three paragraph types."},
+{n:4,title:"Create a test landing page",body:"Create a new Landing Page node. Add a Hero Banner, then a Text Block, then a CTA Button. Save and view."},
+{n:5,title:"Export config",code:"ddev drush cex -y"},
+],aiCheck:{prompt:"Describe your Paragraphs setup: What paragraph types did you create, what fields does each have, and how does the landing page look when you view it?",checkGoal:"Verify the student has successfully installed Paragraphs, created meaningful paragraph types with appropriate fields, and built a working landing page. Give feedback on paragraph type design and whether their field choices make sense for the content."}}},
+{day:"Day 4",title:"Layout Builder",goal:"Master Drupal's built-in drag-and-drop layout system for content display.",
+reading:[
+{title:"What Layout Builder does",body:"Layout Builder (core) lets you visually arrange blocks and fields into sections on a page. You can create layout templates for content types or customize individual nodes.",link:"https://www.drupal.org/docs/8/core/modules/layout-builder"},
+{title:"Sections and blocks",body:"Layout Builder uses sections (columns/rows) and blocks (content pieces placed into sections). Core blocks include content fields, Views blocks, and custom blocks.",link:null},
+{title:"Content type defaults vs. per-node overrides",body:"You can set a default layout for all nodes of a content type, then optionally allow editors to override it per node. For most sites, defaults-only is safer and more maintainable.",link:null},
+],
+activity:{type:"hands_on",title:"Build a layout with Layout Builder",intro:"Enable Layout Builder for your Article content type and create a two-column layout.",steps:[
+{n:1,title:"Enable Layout Builder",code:"ddev drush pm:enable layout_builder -y && ddev drush cr"},
+{n:2,title:"Enable for Article content type",body:"Admin → Structure → Content types → Article → Manage display. Enable Layout Builder. Save."},
+{n:3,title:"Build a two-column layout",body:"Click 'Manage layout'. Add a Two-column section. Place Title and Body in the left column. Place Tags and Reading time in the right column."},
+{n:4,title:"Save and preview",body:"Go to an existing article — you should see the new two-column layout."},
+{n:5,title:"Export config",code:"ddev drush cex -y"},
+],aiCheck:{prompt:"Describe your Layout Builder setup: What sections and blocks did you create? What does your article page look like now vs. before?",checkGoal:"Verify the student has successfully enabled and configured Layout Builder for a content type. Check they understand the sections/blocks model and have created a meaningful layout. Give feedback on layout design choices."}}},
+{day:"Day 5",title:"Media & Image Styles",goal:"Set up professional media handling with image styles and responsive images.",
+reading:[
+{title:"Drupal's Media system",body:"The Media module (core) provides a centralized media library for images, videos, audio, and files. Images uploaded through Media are reusable across content.",link:"https://www.drupal.org/docs/8/core/modules/media"},
+{title:"Image styles",body:"Image styles define server-side image transformations (scale, crop, resize). A single uploaded image can be displayed at multiple sizes by defining different image styles.",link:null},
+{title:"Responsive image module",body:"The Responsive Image module (core) maps image styles to CSS breakpoints, serving the right image size to the right screen. Essential for performance.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"A client uploads a 4000px wide photo. You need to display it as a 400x300px thumbnail in listings and full-width on detail pages. What is the correct Drupal approach?",options:["Use CSS to resize the original image","Create two image styles (thumbnail 400x300 and full-width) and assign them to different display modes","Manually crop and upload two versions","Use JavaScript to resize images client-side"],answer:1,explanation:"Image styles apply server-side transformations. Create styles for each use case and assign them to field formatters in content display modes. The original is preserved; derived images are cached."},
+{q:"What Drupal module maps image styles to responsive breakpoints so mobile gets a smaller image than desktop?",options:["Mobile Images module","Responsive Image module (core)","Picture element module","Breakpoints module alone"],answer:1,explanation:"The Responsive Image core module, combined with the Breakpoints module, lets you define which image style to serve at which screen width. Drupal outputs the appropriate <picture> or srcset HTML."},
+]}},
+{day:"Day 6",title:"User Roles & Permissions",goal:"Design and implement a complete user permission system for a real-world site.",
+reading:[
+{title:"Drupal's permission system",body:"Drupal uses roles with granular permissions. Users can have multiple roles. Every action in Drupal (view content, create articles, administer users) maps to a specific permission.",link:null},
+{title:"Common role patterns",body:"Anonymous → authenticated → content_editor → content_manager → site_admin. Each adds more permissions. Never give editors 'administer site configuration' — that's admin-only.",link:null},
+{title:"Content moderation",body:"The Content Moderation core module adds editorial workflow states (draft, review, published). Assign different states to different roles for proper editorial workflows.",link:null},
+],
+activity:{type:"hands_on",title:"Build a complete permission structure",intro:"Create roles for a real editorial workflow.",steps:[
+{n:1,title:"Create Content Editor role",body:"Admin → People → Roles → Add role. Machine name: content_editor"},
+{n:2,title:"Set Editor permissions",body:"Give content_editor: create/edit own article content, access content overview, use the media library. Deny: administer content, administer users, administer site config."},
+{n:3,title:"Create Content Manager role",body:"Add role: content_manager. Give all editor permissions PLUS: edit any content, delete any content, administer taxonomy."},
+{n:4,title:"Enable Content Moderation",code:"ddev drush pm:enable content_moderation workflows -y && ddev drush cr"},
+{n:5,title:"Export config",code:"ddev drush cex -y"},
+],aiCheck:{prompt:"List the permissions you gave to content_editor vs. content_manager. Why did you choose to separate those specific permissions?",checkGoal:"Evaluate the student's understanding of the principle of least privilege in Drupal permissions. Check that editors can't do admin tasks, and that the permission separation makes logical sense for an editorial workflow. Give feedback on security best practices."}}},
+{day:"Day 7",title:"Week 1 Review — Site Building",goal:"Solidify Views, Paragraphs, Layout Builder, and permissions with a comprehensive challenge.",
+reading:[
+{title:"What you've built",body:"You now have the skills to build real client-quality Drupal sites — Views for content listings, Paragraphs for flexible layouts, Layout Builder for display control, and a proper permission system. This is the Site Builder certification territory.",link:null},
+],
+activity:{type:"ai_open",prompt:"Site Building challenge — answer all three: (1) A client needs an events site with: events listing page filterable by category, a featured events block for the homepage, and each event has a flexible content area with text, images, and a map embed. Which Drupal tools would you use for each requirement and why? (2) What's the difference between a Paragraphs approach and a Layout Builder approach for flexible page content? When would you choose each? (3) You have an Editor role that somehow can delete any content. How do you audit and fix Drupal permissions?",checkGoal:"Evaluate site building judgment. Key answers: (1) Views for listing + block, Paragraphs for the flexible content area, custom paragraph types for map embed. (2) Paragraphs = structured content order, Layout Builder = visual layout control — choose based on editorial vs. layout needs. (3) Admin → People → Permissions, look for 'delete any content' checkbox on Editor role. Score 0-10 with specific feedback."}},
+]},
+{label:"Week 2",name:"Advanced site building",days:[
+{day:"Day 8",title:"Configuration Management Across Environments",goal:"Master multi-environment config workflows including Config Split.",
+reading:[
+{title:"The multi-environment problem",body:"Dev has Devel module and verbose errors. Staging matches prod. Prod has Varnish config and CDN settings. Config Split lets you split config by environment so drush cim applies the right config in the right place.",link:"https://www.drupal.org/project/config_split"},
+{title:"settings.php overrides",body:"$settings, $config, and $databases in settings.php override config and are never exported. Use this for: database credentials, trusted host patterns, per-environment feature flags.",link:null},
+{title:"config/sync vs. config/default",body:"config/sync is your active config export. config/default is used for installation profiles. Don't confuse them. Your workflow always uses config/sync.",link:null},
+],
+activity:{type:"hands_on",title:"Set up Config Split for dev vs. prod",intro:"Configure different module sets per environment using Config Split.",steps:[
+{n:1,title:"Install Config Split",code:"ddev composer require drupal/config_split\nddev drush pm:enable config_split -y && ddev drush cr"},
+{n:2,title:"Create a 'dev' split",body:"Admin → Config → Development → Configuration split → Add configuration split. Name: dev. Folder: config/dev. Complete split modules: devel, kint, views_ui."},
+{n:3,title:"Add to settings.php",code:"// In web/sites/default/settings.local.php\n$config['config_split.config_split.dev']['status'] = TRUE;"},
+{n:4,title:"Export with split",code:"ddev drush cex -y\nls config/dev/"},
+],aiCheck:{prompt:"Paste the output of `ls config/dev/` and explain why Config Split is important for a professional Drupal workflow.",checkGoal:"Verify the student has set up Config Split and understands why it's needed. Check that dev-only modules appear in the config/dev folder. Give feedback on the broader environment management strategy."}}},
+{day:"Day 9",title:"Search API & Faceted Search",goal:"Add professional search functionality to a Drupal site.",
+reading:[
+{title:"Search API",body:"Search API is the most-used search solution for Drupal. It provides a flexible search backend (Database, Solr, Elasticsearch) with a Views integration for building search pages.",link:"https://www.drupal.org/project/search_api"},
+{title:"Facets module",body:"Facets module provides faceted filtering UI for Search API — the sidebar filters you see on e-commerce sites (filter by category, price range, author, etc.).",link:"https://www.drupal.org/project/facets"},
+],
+activity:{type:"hands_on",title:"Build a faceted search page",intro:"Add Search API with Database backend and faceted filtering to your site.",steps:[
+{n:1,title:"Install Search API + Facets",code:"ddev composer require drupal/search_api drupal/facets\nddev drush pm:enable search_api search_api_db facets -y && ddev drush cr"},
+{n:2,title:"Create a search server",body:"Admin → Config → Search and metadata → Search API → Add server. Backend: Database. Save."},
+{n:3,title:"Create a search index",body:"Add index. Datasource: Content. Select Article. Attach to your server. Add fields: Title (fulltext), Body (fulltext), Tags (string). Save and index."},
+{n:4,title:"Build a search View",body:"Create a new View. Show: Index 'Articles'. Add a search keywords exposed filter. Add a Tags facet block."},
+{n:5,title:"Test the search",body:"Visit your search page, search for a keyword, and filter by a tag."},
+],aiCheck:{prompt:"Describe your search setup: (1) Which backend did you use and why? (2) What fields did you index? (3) Does the search and facet filtering work? What happens when you combine a keyword search with a tag filter?",checkGoal:"Verify the student has a working Search API + Facets setup. Key checks: index has fulltext fields, Views is using the index as data source, facets are working. Give feedback on field selection and indexing strategy."}}},
+{day:"Day 10",title:"Pathauto & URL Management",goal:"Set up clean, SEO-friendly URLs automatically with Pathauto.",
+reading:[
+{title:"Pathauto module",body:"Pathauto automatically generates clean URL aliases for content based on patterns. Example: /articles/[node:title] gives you /articles/my-article-title instead of /node/42.",link:"https://www.drupal.org/project/pathauto"},
+{title:"Token module",body:"Pathauto depends on Token, which provides dynamic replacement patterns for entity values. [node:title], [user:name], [term:name] etc. are token patterns.",link:null},
+{title:"Metatag module",body:"Metatag automatically generates SEO meta tags (title, description, og:image) from content. Pairs perfectly with Pathauto for a professional SEO setup.",link:null},
+],
+activity:{type:"hands_on",title:"Set up Pathauto for all content types",intro:"Configure automatic URL patterns for articles, taxonomy terms, and users.",steps:[
+{n:1,title:"Install Pathauto",code:"ddev composer require drupal/pathauto drupal/token\nddev drush pm:enable pathauto token -y && ddev drush cr"},
+{n:2,title:"Configure Article pattern",body:"Admin → Config → Search and metadata → URL aliases → Patterns. Add pattern for Content type Article: /articles/[node:title]"},
+{n:3,title:"Configure taxonomy pattern",body:"Add pattern for Taxonomy terms, Tags vocabulary: /topics/[term:name]"},
+{n:4,title:"Bulk update existing content",body:"Admin → Config → Search and metadata → URL aliases → Bulk update → Update Article URL aliases"},
+{n:5,title:"Verify",code:"ddev drush php:eval \"$node = \\Drupal::entityTypeManager()->getStorage('node')->load(1); echo \\Drupal::service('path_alias.manager')->getAliasByPath('/node/'.$node->id());\""},
+],aiCheck:{prompt:"Paste the output of the drush php:eval command AND show your Pathauto patterns configuration. What URL does a new Article get now?",checkGoal:"Verify the student has correctly set up Pathauto patterns. Check that the alias follows the configured pattern and that bulk update worked. Give feedback on URL strategy and SEO considerations."}}},
+{day:"Day 11",title:"Phase 2 Mini-Project: Events Site",goal:"Build a complete, professional events listing site using all Phase 2 skills.",
+reading:[
+{title:"What you're building",body:"An events site with: Event content type (date, location, category, Paragraphs sections), taxonomy categories, Views listing with exposed filters, Search API search page, Pathauto URLs, proper permissions, and all config exported.",link:null},
+],
+activity:{type:"hands_on",title:"Build the events site",intro:"This is your Phase 2 capstone. Take your time to build it properly.",steps:[
+{n:1,title:"Create Event content type",body:"Fields: field_event_date (datetime), field_location (text), field_category (taxonomy ref to new 'Event Categories' vocab), field_sections (Paragraphs), field_registration_url (link)"},
+{n:2,title:"Create Views listing at /events",body:"Sorted by event date ASC. Filter: published + event date >= today. Exposed filters: category, date range."},
+{n:3,title:"Add Layout Builder to Event display",body:"Create a two-section layout: hero area (title, date, location), content area (paragraphs sections, registration link)."},
+{n:4,title:"Set up Pathauto",body:"Pattern for Events: /events/[node:field_event_date:date]/[node:title]"},
+{n:5,title:"Export everything and test",code:"ddev drush cex -y\n# Create 5 test events with different categories and dates\n# Test: listing, filtering, search, single event page"},
+],aiCheck:{prompt:"Describe your completed events site: (1) What content type fields did you create? (2) What does the /events listing look like and how does filtering work? (3) What does a single event page look like? Share any interesting decisions you made.",checkGoal:"Evaluate the Phase 2 capstone project. Key checks: appropriate field types for event data, Views using date filter correctly, Paragraphs sections working, clean URLs. Give comprehensive feedback on content architecture quality and professional site building practices."}}},
+{day:"Day 12",title:"Phase 2 Retrospective",goal:"Consolidate site building skills and prepare for custom module development.",
+reading:[
+{title:"Site Builder certification readiness",body:"You now have the skills for the Acquia Certified Site Builder exam. You've worked with Views, Paragraphs, Layout Builder, CMI, permissions, Search API, and Pathauto — all exam topic areas.",link:"https://docs.acquia.com/acquia-academy/acquia-certified-drupal-site-builder"},
+{title:"What's next",body:"Phase 3 moves into custom module development — routing, Form API, Entity API, plugins, and services. This is where you go from configuring Drupal to extending it.",link:null},
+],
+activity:{type:"ai_open",prompt:"Phase 2 final — answer these three: (1) Describe the complete architecture of a Drupal site you'd build for a university department that needs: faculty profiles, course listings, news, events, and a resource library. What content types, Views, and modules would you use? (2) What's the difference between a Views exposed filter and a facet from the Search API Facets module? When would you use each? (3) Explain the CMI workflow from local dev all the way to production deployment, including what happens if someone made a config change directly on prod.",checkGoal:"Evaluate Phase 2 mastery. Key checks: (1) thoughtful content architecture with appropriate content types and relationships, (2) correct distinction — exposed filters are basic form filters on a Views query, facets aggregate and count results, (3) complete cmi workflow with awareness of the prod-direct-change anti-pattern. Score 0-10 with detailed Phase 2 feedback."}},
+]},
+]},
+{id:3,label:"Phase 3",name:"Custom Module Development",color:"#f5a623",bg:"#281d08",weeks:[
+{label:"Week 1",name:"Routing, controllers & forms",days:[
+{day:"Day 1",title:"Routing System Deep Dive",goal:"Understand how Drupal maps URLs to code using its routing system.",
+reading:[
+{title:"How routing works",body:"Drupal maps URLs to controller methods via YAML routing files ({module}.routing.yml). Every custom page needs a route definition. The router handles access control, parameters, and admin path detection.",link:"https://www.drupal.org/docs/8/api/routing-system"},
+{title:"Route parameters & upcasting",body:"Routes can have dynamic segments like /node/{node} or /user/{user_id}. Drupal auto-loads ('upcasts') the entity if the parameter name matches an entity type — so {node} gives you a fully-loaded Node object.",link:null},
+{title:"Access callbacks",body:"The 'requirements' section of a route defines access. _permission, _role, _entity_access, and custom _custom_access callbacks are all options. Access is denied before the controller runs.",link:null},
+],
+activity:{type:"hands_on",title:"Build a custom route and controller",intro:"Create a custom page at /hello/{name} that greets the user.",steps:[
+{n:1,title:"Create routing YAML",code:"# my_first_module.routing.yml\nmy_first_module.hello:\n  path: '/hello/{name}'\n  defaults:\n    _controller: '\\Drupal\\my_first_module\\Controller\\HelloController::page'\n    _title: 'Hello Page'\n  requirements:\n    _permission: 'access content'"},
+{n:2,title:"Create the controller",code:"<?php\n// src/Controller/HelloController.php\nnamespace Drupal\\my_first_module\\Controller;\nuse Drupal\\Core\\Controller\\ControllerBase;\n\nclass HelloController extends ControllerBase {\n  public function page(string $name): array {\n    return ['#markup' => $this->t('Hello, @name!', ['@name' => $name])];\n  }\n}"},
+{n:3,title:"Rebuild and test",code:"ddev drush cr\n# Visit: https://your-site.ddev.site/hello/YourName"},
+],aiCheck:{prompt:"Paste your routing YAML and HelloController.php. Also describe what happened when you visited /hello/YourName.",checkGoal:"Verify correct routing YAML indentation, proper class namespace and ControllerBase extension, render array returned (not a string), and that the page loaded. Give specific feedback."}}},
+{day:"Day 2",title:"Form API — FormBase",goal:"Build custom forms using Drupal's Form API.",
+reading:[
+{title:"Drupal Form API",body:"Drupal provides a standard way to build forms using the Form API. All forms are PHP classes extending FormBase (or ConfigFormBase for settings). The API handles CSRF protection, validation, theming, and submission automatically.",link:"https://www.drupal.org/docs/drupal-apis/form-api"},
+{title:"The three key methods",body:"<strong>buildForm()</strong> — define form structure as a render array. <strong>validateForm()</strong> — add validation logic, call $form_state->setError() for errors. <strong>submitForm()</strong> — handle submission, save data, redirect.",link:null},
+{title:"Form element types",body:"textfield, textarea, select, checkboxes, radios, email, number, date, file, managed_file, entity_autocomplete. Each has standard properties: #title, #required, #default_value, #description.",link:null},
+],
+activity:{type:"hands_on",title:"Build a subscription form",intro:"Create a custom form that collects name and email with validation.",steps:[
+{n:1,title:"Create the form class",code:"<?php\n// src/Form/SubscribeForm.php\nnamespace Drupal\\my_first_module\\Form;\nuse Drupal\\Core\\Form\\FormBase;\nuse Drupal\\Core\\Form\\FormStateInterface;\n\nclass SubscribeForm extends FormBase {\n  public function getFormId() { return 'my_first_module_subscribe'; }\n\n  public function buildForm(array $form, FormStateInterface $form_state): array {\n    $form['name'] = ['#type'=>'textfield','#title'=>$this->t('Name'),'#required'=>TRUE];\n    $form['email'] = ['#type'=>'email','#title'=>$this->t('Email'),'#required'=>TRUE];\n    $form['submit'] = ['#type'=>'submit','#value'=>$this->t('Subscribe')];\n    return $form;\n  }\n\n  public function validateForm(array &$form, FormStateInterface $form_state): void {\n    $name = $form_state->getValue('name');\n    if (strlen($name) < 2) {\n      $form_state->setErrorByName('name', $this->t('Name must be at least 2 characters.'));\n    }\n  }\n\n  public function submitForm(array &$form, FormStateInterface $form_state): void {\n    $this->messenger()->addStatus($this->t('Thanks @name, subscribed!', ['@name'=>$form_state->getValue('name')]));\n  }\n}"},
+{n:2,title:"Add a route for the form",code:"# Add to my_first_module.routing.yml\nmy_first_module.subscribe:\n  path: '/subscribe'\n  defaults:\n    _form: '\\Drupal\\my_first_module\\Form\\SubscribeForm'\n    _title: 'Subscribe'\n  requirements:\n    _access: 'TRUE'"},
+{n:3,title:"Test",code:"ddev drush cr\n# Visit /subscribe, try submitting with invalid data, then valid data"},
+],aiCheck:{prompt:"Paste your SubscribeForm.php and describe what happens when you: (1) submit with a 1-character name, (2) submit with valid data.",checkGoal:"Verify correct Form API structure: getFormId returns unique string, buildForm returns render array with proper element types, validateForm uses setErrorByName, submitForm uses messenger. Check validation fires correctly. Give specific feedback."}}},
+{day:"Day 3",title:"Form API — ConfigFormBase",goal:"Build admin settings forms that save to Drupal's configuration system.",
+reading:[
+{title:"ConfigFormBase",body:"ConfigFormBase extends FormBase with built-in support for saving to Drupal's config system. It uses $this->config() to read/write values, which are then exportable via drush cex.",link:null},
+{title:"The getEditableConfigNames() method",body:"This protected method tells Drupal which config objects your form manages. These must be declared for the form to be able to write config values.",link:null},
+],
+activity:{type:"hands_on",title:"Build an admin settings form",intro:"Create a settings page for your module that saves config values.",steps:[
+{n:1,title:"Create SettingsForm.php",code:"<?php\n// src/Form/SettingsForm.php\nnamespace Drupal\\my_first_module\\Form;\nuse Drupal\\Core\\Form\\ConfigFormBase;\nuse Drupal\\Core\\Form\\FormStateInterface;\n\nclass SettingsForm extends ConfigFormBase {\n  protected function getEditableConfigNames(): array {\n    return ['my_first_module.settings'];\n  }\n  public function getFormId(): string { return 'my_first_module_settings'; }\n\n  public function buildForm(array $form, FormStateInterface $form_state): array {\n    $config = $this->config('my_first_module.settings');\n    $form['greeting'] = ['#type'=>'textfield','#title'=>$this->t('Greeting text'),'#default_value'=>$config->get('greeting') ?? 'Hello'];\n    $form['enabled'] = ['#type'=>'checkbox','#title'=>$this->t('Enable feature'),'#default_value'=>$config->get('enabled') ?? TRUE];\n    return parent::buildForm($form, $form_state);\n  }\n\n  public function submitForm(array &$form, FormStateInterface $form_state): void {\n    $this->config('my_first_module.settings')\n      ->set('greeting', $form_state->getValue('greeting'))\n      ->set('enabled', $form_state->getValue('enabled'))\n      ->save();\n    parent::submitForm($form, $form_state);\n  }\n}"},
+{n:2,title:"Add admin route",code:"my_first_module.settings:\n  path: '/admin/config/system/my-module'\n  defaults:\n    _form: '\\Drupal\\my_first_module\\Form\\SettingsForm'\n    _title: 'My Module Settings'\n  requirements:\n    _permission: 'administer site configuration'"},
+{n:3,title:"Test and verify config is saved",code:"ddev drush cr\n# Submit the form, then:\nddev drush cget my_first_module.settings"},
+],aiCheck:{prompt:"Paste your SettingsForm.php and the output of `ddev drush cget my_first_module.settings` after saving the form.",checkGoal:"Verify ConfigFormBase usage: getEditableConfigNames returns the config object name, buildForm reads from config with default values, submitForm saves with ->set()->save() pattern, admin permission on route. Check that drush cget shows saved values."}}},
+{day:"Day 4",title:"Entity API — Loading & Querying",goal:"Work programmatically with Drupal entities using the Entity API.",
+reading:[
+{title:"EntityTypeManager",body:"The central service for entity operations. Key methods: getStorage('entity_type') → EntityStorageInterface with load(), loadMultiple(), create(), delete().",link:"https://api.drupal.org/api/drupal/core!lib!Drupal!Core!Entity!EntityTypeManager.php"},
+{title:"Entity queries",body:"Use entityTypeManager->getStorage('node')->getQuery() to build programmatic queries. Supports conditions, sort, range, accessCheck. Returns entity IDs — load them separately.",link:null},
+{title:"Creating and saving entities",body:"$node = Node::create(['type'=>'article','title'=>'Test','status'=>1]); $node->save(). Field values use $node->set('field_name', $value) or $node->get('field_name')->setValue($value).",link:null},
+],
+activity:{type:"hands_on",title:"Entity API CRUD operations",intro:"Practice creating, loading, querying, and updating entities programmatically.",steps:[
+{n:1,title:"Query entities",code:"ddev drush php:eval \"\n\\$storage = \\Drupal::entityTypeManager()->getStorage('node');\n\\$ids = \\$storage->getQuery()\n  ->accessCheck(TRUE)\n  ->condition('type', 'article')\n  ->condition('status', 1)\n  ->sort('created', 'DESC')\n  ->range(0, 3)\n  ->execute();\n\\$nodes = \\$storage->loadMultiple(\\$ids);\nforeach(\\$nodes as \\$n) echo \\$n->getTitle().\"\\n\";\n\""},
+{n:2,title:"Create an entity programmatically",code:"ddev drush php:eval \"\n\\$node = \\Drupal\\node\\Entity\\Node::create([\n  'type' => 'article',\n  'title' => 'Programmatically created',\n  'status' => 1,\n  'body' => ['value'=>'Created via Entity API', 'format'=>'basic_html'],\n]);\n\\$node->save();\necho 'Created node ID: ' . \\$node->id();\n\""},
+{n:3,title:"Update an entity",code:"ddev drush php:eval \"\n\\$nid = 1; // Use an actual node ID from your site\n\\$node = \\Drupal::entityTypeManager()->getStorage('node')->load(\\$nid);\n\\$node->setTitle('Updated title - ' . date('H:i:s'));\n\\$node->save();\necho 'Updated: ' . \\$node->getTitle();\n\""},
+],aiCheck:{prompt:"Paste the output of all three drush php:eval commands. Did all three operations (query, create, update) work? What node ID was created?",checkGoal:"Verify the student can use the Entity API for all CRUD operations. Check that: query returns correct results, create produces a new node ID, update changes the title. Give feedback on Entity API patterns and common pitfalls."}}},
+{day:"Day 5",title:"Plugin System — Custom Block Plugins",goal:"Understand Drupal's plugin system and build a custom block plugin.",
+reading:[
+{title:"What is a plugin?",body:"Plugins are swappable implementations of a type. Drupal has plugin types for: blocks, field formatters, field widgets, views handlers, migrate sources, etc. Each plugin type has a manager that discovers and instantiates plugins.",link:"https://www.drupal.org/docs/drupal-apis/plugin-api"},
+{title:"Block plugins",body:"Custom blocks are the most common plugin you'll write. They use the @Block annotation for discovery and must implement build() to return a render array.",link:null},
+{title:"Annotations",body:"Drupal uses PHP docblock annotations (via Doctrine Annotations) for plugin discovery. The @Block annotation tells Drupal about your plugin — its ID, admin label, and category.",link:null},
+],
+activity:{type:"hands_on",title:"Build a custom block plugin",intro:"Create a block that shows the current user's name and their recent nodes.",steps:[
+{n:1,title:"Create the block plugin",code:"<?php\n// src/Plugin/Block/UserSummaryBlock.php\nnamespace Drupal\\my_first_module\\Plugin\\Block;\nuse Drupal\\Core\\Block\\BlockBase;\nuse Drupal\\Core\\Plugin\\ContainerFactoryPluginInterface;\nuse Drupal\\Core\\Entity\\EntityTypeManagerInterface;\nuse Drupal\\Core\\Session\\AccountInterface;\nuse Symfony\\Component\\DependencyInjection\\ContainerInterface;\n\n/**\n * @Block(\n *   id = \"user_summary_block\",\n *   admin_label = @Translation(\"User Summary\"),\n *   category = @Translation(\"Custom\")\n * )\n */\nclass UserSummaryBlock extends BlockBase implements ContainerFactoryPluginInterface {\n  public function __construct(array $config, $plugin_id, $plugin_def, protected EntityTypeManagerInterface $entityTypeManager, protected AccountInterface $currentUser) {\n    parent::__construct($config, $plugin_id, $plugin_def);\n  }\n\n  public static function create(ContainerInterface $container, array $config, $plugin_id, $plugin_def): static {\n    return new static($config, $plugin_id, $plugin_def, $container->get('entity_type.manager'), $container->get('current_user'));\n  }\n\n  public function build(): array {\n    $name = $this->currentUser->getDisplayName();\n    return ['#markup' => '<p>Welcome, ' . htmlspecialchars($name) . '!</p>'];\n  }\n}"},
+{n:2,title:"Enable and place the block",code:"ddev drush cr\n# Admin → Structure → Block layout → Place block → search 'User Summary'"},
+],aiCheck:{prompt:"Paste your UserSummaryBlock.php and confirm: (1) Does the block appear in the block library? (2) When placed, does it show the current user's name?",checkGoal:"Verify correct block plugin structure: @Block annotation with id/admin_label/category, ContainerFactoryPluginInterface for DI, correct create() factory method, build() returns render array. Check that it appears in the block UI. Give specific feedback."}}},
+{day:"Day 6",title:"Custom Entity Type",goal:"Build a completely custom content entity type in Drupal.",
+reading:[
+{title:"When to create a custom entity",body:"Create a custom entity when: you need a data structure that doesn't fit nodes/taxonomy, you want admin CRUD UI without content moderation overhead, or you're building a specific feature (e.g., job listings, subscriber records).",link:null},
+{title:"ContentEntityBase",body:"Custom content entities extend ContentEntityBase. You define fields in baseFieldDefinitions() and use annotations to declare entity metadata (admin labels, routes, handlers).",link:null},
+],
+activity:{type:"hands_on",title:"Build a Subscriber custom entity",intro:"Create a simple custom entity to store newsletter subscriber records.",steps:[
+{n:1,title:"Create the entity class",code:"<?php\n// src/Entity/Subscriber.php\nnamespace Drupal\\my_first_module\\Entity;\nuse Drupal\\Core\\Entity\\ContentEntityBase;\nuse Drupal\\Core\\Field\\BaseFieldDefinition;\nuse Drupal\\Core\\Entity\\EntityTypeInterface;\n\n/**\n * @ContentEntityType(\n *   id = \"subscriber\",\n *   label = @Translation(\"Subscriber\"),\n *   base_table = \"subscriber\",\n *   entity_keys = {\"id\"=\"id\",\"label\"=\"email\"},\n *   admin_permission = \"administer site configuration\"\n * )\n */\nclass Subscriber extends ContentEntityBase {\n  public static function baseFieldDefinitions(EntityTypeInterface $entity_type): array {\n    $fields = parent::baseFieldDefinitions($entity_type);\n    $fields['email'] = BaseFieldDefinition::create('email')\n      ->setLabel(t('Email'))->setRequired(TRUE)->setDisplayOptions('form',['type'=>'email_default']);\n    $fields['name'] = BaseFieldDefinition::create('string')\n      ->setLabel(t('Name'))->setDisplayOptions('form',['type'=>'string_textfield']);\n    return $fields;\n  }\n}"},
+{n:2,title:"Run entity updates",code:"ddev drush cr\nddev drush updb -y\n# Or for new entity: ddev drush php:eval \"\\Drupal::entityTypeManager()->clearCachedDefinitions(); drupal_flush_all_caches();\""},
+{n:3,title:"Create a subscriber programmatically",code:"ddev drush php:eval \"\n\\Drupal::entityTypeManager()->clearCachedDefinitions();\n\\$sub = \\Drupal\\my_first_module\\Entity\\Subscriber::create(['email'=>'test@example.com','name'=>'Test User']);\n\\$sub->save();\necho 'Created subscriber ID: '.(int)\\$sub->id();\n\""},
+],aiCheck:{prompt:"Paste your Subscriber.php entity class and the output of the subscriber creation command. Did the entity save successfully with an ID?",checkGoal:"Verify correct custom entity structure: @ContentEntityType annotation with id/label/base_table/entity_keys, baseFieldDefinitions returns proper field definitions with display options, entity saves with a numeric ID. Give feedback on entity design and common issues."}}},
+{day:"Day 7",title:"Week 1 Review — Module Dev",goal:"Consolidate routing, Form API, Entity API, and plugins with a comprehensive challenge.",
+reading:[
+{title:"What you've mastered",body:"You can now build custom pages, forms, admin settings, query entities, write block plugins, and create custom entity types. This covers the core of the Acquia Backend Specialist exam.",link:null},
+],
+activity:{type:"ai_open",prompt:"Module dev challenge — answer all three: (1) Walk me through building a custom Drupal page that shows a form, and when submitted, creates a new Node programmatically using the Entity API. Describe the files you'd need to create and the key code in each. (2) What is the difference between a ContentEntityBase and a ConfigEntityBase? Give a real-world example of when you'd create each. (3) You're building a block that needs to show content from an external API. Why should you use ContainerFactoryPluginInterface and inject a custom HTTP client service rather than calling file_get_contents() directly?",checkGoal:"Evaluate the student's module dev understanding. Key answers: (1) routing.yml + Controller (or _form route) + Form class with submitForm creating a Node; (2) content=database rows+CRUD, config=YAML+admin settings — e.g., subscriber records vs. module configuration; (3) testability, DI, service reuse, separation of concerns. Score 0-10 with specific feedback."}},
+]},
+{label:"Week 2",name:"Services, testing & advanced APIs",days:[
+{day:"Day 8",title:"Queue API & Batch API",goal:"Handle long-running and background tasks properly in Drupal.",
+reading:[
+{title:"Queue API",body:"The Queue API processes items asynchronously. Use it for: sending emails, third-party API calls, image processing — anything that shouldn't block a page request. Cron processes queues.",link:"https://api.drupal.org/api/drupal/core!core.api.php/group/queue"},
+{title:"Batch API",body:"The Batch API handles long-running operations with a progress bar in the browser. Use it for: bulk content updates, large imports, bulk email sends. Unlike Queue, it runs in the foreground with user feedback.",link:"https://api.drupal.org/api/drupal/core!includes!form.inc/group/batch"},
+{title:"When to use which",body:"Queue: background, no UI feedback needed, can run on cron. Batch: foreground, user needs to see progress, admin operations.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"You need to send 10,000 notification emails when a major announcement is published. Which API should you use?",options:["Process all emails in hook_node_insert — it's fine since it's async","Use the Batch API to show a progress bar to the editor","Add all emails to a Queue and process them via cron","Use PHP's mail() function in a loop"],answer:2,explanation:"For background email sending, Queue is ideal. Add each email as a queue item in hook_node_insert, then a QueueWorker processes them asynchronously on cron. This won't block the editor's page load or risk timeouts."},
+{q:"An admin needs to update a custom field on 50,000 existing nodes. Which API is most appropriate?",options:["A single PHP loop in a .module file","The Queue API processed by cron","The Batch API with a progress bar","The Entity API in a drush script"],answer:2,explanation:"Batch API is perfect here — the admin triggers it, watches a progress bar, and gets confirmation when done. It splits the work into chunks to avoid memory limits and timeouts."},
+]}},
+{day:"Day 9",title:"Database API & Custom Tables",goal:"Use Drupal's Database API for custom data storage and queries.",
+reading:[
+{title:"Drupal's Database API",body:"Drupal wraps PDO in a database abstraction layer. Use \\Drupal::database() for custom queries. Supports select(), insert(), update(), delete(), merge(), and upsert().",link:"https://www.drupal.org/docs/drupal-apis/database-api"},
+{title:"When to use custom tables vs. entities",body:"Custom entity: when you need revisions, translations, field UI, Views integration. Custom table: for high-volume log/analytics data, junction tables, simple key-value stores where entity overhead is too much.",link:null},
+{title:"hook_schema()",body:"Define custom database tables in hook_schema() in your {module}.install file. Drupal creates them on module install and manages updates via hook_update_N().",link:null},
+],
+activity:{type:"hands_on",title:"Create a custom analytics table",intro:"Build a simple page view counter using a custom database table.",steps:[
+{n:1,title:"Define schema in .install",code:"<?php\n// my_first_module.install\nfunction my_first_module_schema(): array {\n  return [\n    'my_module_page_views' => [\n      'description' => 'Page view counts',\n      'fields' => [\n        'path'=>['type'=>'varchar','length'=>255,'not null'=>TRUE,'default'=>''],\n        'views'=>['type'=>'int','unsigned'=>TRUE,'not null'=>TRUE,'default'=>0],\n      ],\n      'primary key'=>['path'],\n    ],\n  ];\n}"},
+{n:2,title:"Track views in an event subscriber",code:"// In your EventSubscriber, on KernelEvents::RESPONSE:\n$path = \\Drupal::request()->getPathInfo();\n\\Drupal::database()->merge('my_module_page_views')\n  ->key('path', $path)\n  ->fields(['path'=>$path,'views'=>1])\n  ->expression('views','views + :inc',[':inc'=>1])\n  ->execute();"},
+{n:3,title:"Query the data",code:"ddev drush php:eval \"\n\\$rows = \\Drupal::database()->select('my_module_page_views','p')\n  ->fields('p')->orderBy('views','DESC')->range(0,5)->execute()->fetchAll();\nforeach(\\$rows as \\$r) echo \\$r->path.' - '.(int)\\$r->views.\" views\\n\";\n\""},
+],aiCheck:{prompt:"Paste your hook_schema() and the output of the database query command. Are views being tracked? What are the top 5 most-viewed paths?",checkGoal:"Verify correct schema definition, merge query usage, and that page views are being tracked. Check that hook_schema follows Drupal's schema API format correctly. Give feedback on Database API patterns and when to use merge vs. insert/update."}}},
+{day:"Day 10",title:"PHPUnit Testing in Drupal",goal:"Write automated tests for your custom module code.",
+reading:[
+{title:"Test types in Drupal",body:"<strong>Unit tests</strong>: test pure PHP logic with no Drupal bootstrap — fastest. <strong>Kernel tests</strong>: test with Drupal's service container but no HTTP — good for services and entity operations. <strong>Functional tests</strong>: full browser simulation — slowest but most comprehensive.",link:"https://www.drupal.org/docs/automated-testing"},
+{title:"Where tests live",body:"Tests go in modules/custom/my_module/tests/src/Unit/, /Kernel/, or /Functional/. File names end in Test.php and extend the appropriate base class.",link:null},
+{title:"Why testing matters for Drupal",body:"Drupal has a large public API surface. Tests protect you from breaking changes on core/contrib updates and document expected behavior. The Acquia Backend Specialist exam covers testing concepts.",link:null},
+],
+activity:{type:"hands_on",title:"Write a unit test for your NodeHelper service",intro:"Write and run a PHPUnit unit test for the getLatestNodes method.",steps:[
+{n:1,title:"Create test directory",code:"mkdir -p web/modules/custom/my_first_module/tests/src/Unit"},
+{n:2,title:"Write the test",code:"<?php\n// tests/src/Unit/NodeHelperTest.php\nnamespace Drupal\\Tests\\my_first_module\\Unit;\nuse Drupal\\Tests\\UnitTestCase;\nuse Drupal\\my_first_module\\NodeHelper;\nuse Drupal\\Core\\Entity\\EntityTypeManagerInterface;\nuse Drupal\\Core\\Entity\\EntityStorageInterface;\n\nclass NodeHelperTest extends UnitTestCase {\n  public function testGetLatestNodesReturnsMockEntities(): void {\n    $storage = $this->createMock(EntityStorageInterface::class);\n    $query = new class { public function accessCheck($b){return $this;} public function sort($f,$d){return $this;} public function range($s,$l){return $this;} public function execute(){return [1,2,3];} };\n    $storage->method('getQuery')->willReturn($query);\n    $storage->method('loadMultiple')->with([1,2,3])->willReturn(['a','b','c']);\n    $etm = $this->createMock(EntityTypeManagerInterface::class);\n    $etm->method('getStorage')->with('node')->willReturn($storage);\n    $helper = new NodeHelper($etm);\n    $result = $helper->getLatestNodes(3);\n    $this->assertCount(3, $result);\n  }\n}"},
+{n:3,title:"Run the test",code:"cd web && ../vendor/bin/phpunit modules/custom/my_first_module/tests/src/Unit/NodeHelperTest.php --no-coverage"},
+],aiCheck:{prompt:"Paste the PHPUnit output from running your test. Did it pass? If not, what error did you get?",checkGoal:"Verify the student can write and run a Drupal unit test. Check test structure: extends UnitTestCase, uses mocks correctly, has meaningful assertions. If it failed, diagnose the error. Give feedback on unit testing best practices in Drupal."}}},
+{day:"Day 11",title:"Coding Standards & Code Quality",goal:"Write Drupal code that meets community coding standards.",
+reading:[
+{title:"Drupal coding standards",body:"Drupal has strict coding standards — PSR-2 base plus Drupal-specific rules. These cover: docblock formatting, hook documentation, use of t() for translatable strings, @deprecated notices, and more.",link:"https://www.drupal.org/docs/develop/standards"},
+{title:"PHP CodeSniffer",body:"phpcs with the Drupal and DrupalPractice standards detects coding violations automatically. Run it before every commit.",link:null},
+{title:"Why this matters for production",body:"Modules submitted to drupal.org require coding standards compliance. Acquia exams test knowledge of standards. Agency work often requires passing phpcs in CI.",link:null},
+],
+activity:{type:"hands_on",title:"Run coding standards on your module",intro:"Install phpcs with Drupal standards and fix all violations.",steps:[
+{n:1,title:"Install phpcs with Drupal standard",code:"ddev composer require --dev drupal/coder squizlabs/php_codesniffer\nddev exec vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer"},
+{n:2,title:"Run on your module",code:"ddev exec vendor/bin/phpcs --standard=Drupal --extensions=php,module,inc,install,yml web/modules/custom/my_first_module/"},
+{n:3,title:"Auto-fix fixable issues",code:"ddev exec vendor/bin/phpcbf --standard=Drupal web/modules/custom/my_first_module/"},
+{n:4,title:"Run again to see remaining issues",code:"ddev exec vendor/bin/phpcs --standard=Drupal web/modules/custom/my_first_module/ 2>&1 | tail -20"},
+],aiCheck:{prompt:"Paste the final phpcs output after running phpcbf. How many errors and warnings remain? List the top 3 types of violations you found.",checkGoal:"Verify the student ran phpcs and phpcbf. Evaluate their understanding of the violations found — key issues might be missing docblocks, incorrect t() usage, or spacing issues. Give feedback on coding standards and which violations are most important to fix."}}},
+{day:"Day 12",title:"Phase 3 Retrospective",goal:"Consolidate custom module development skills and prepare for theming.",
+reading:[
+{title:"Backend Specialist readiness",body:"You now have significant overlap with the Acquia Certified Back End Specialist exam: routing, Form API, Entity API, plugin system, Database API, Queue/Batch API, and testing.",link:null},
+],
+activity:{type:"ai_open",prompt:"Phase 3 final — answer these two in depth: (1) You're building a module that needs to: (a) expose a new admin page listing all Subscriber entities, (b) allow admins to approve or reject subscribers, (c) send an email notification asynchronously when approved. Describe the complete architecture — every file you'd create, every Drupal API you'd use, and why. (2) A junior developer on your team wrote this code in a hook: $result = db_query('SELECT * FROM node WHERE status = 1'); — what's wrong with it and how would you fix it?",checkGoal:"Evaluate Phase 3 module development mastery. (1) should include: routing.yml, Controller, Views or custom listing, hook or event subscriber for approval logic, Queue API for async email. (2) db_query is deprecated, use Entity API or database abstraction — db_query bypasses access control, doesn't use placeholders safely. Score 0-10 with comprehensive Phase 3 feedback."}},
+]},
+]},
+{id:4,label:"Phase 4",name:"Theming & Frontend",color:"#3b9eff",bg:"#0d1e33",weeks:[
+{label:"Week 1",name:"Twig & template system",days:[
+{day:"Day 1",title:"Twig Syntax Essentials",goal:"Get comfortable with Twig before diving into Drupal-specific templates.",
+reading:[
+{title:"Twig's three delimiters",body:"<strong>{{ variable }}</strong> — output a value (auto-escaped). <strong>{% tag %}</strong> — control flow: if/else, for loops, set, block. <strong>{# comment #}</strong> — not rendered.",link:"https://twig.symfony.com/doc/3.x/"},
+{title:"Drupal-specific Twig functions",body:"<strong>{{ content }}</strong> — render all fields. <strong>{{ content.field_name }}</strong> — render one field. <strong>{{ url('route.name') }}</strong> — generate URL. <strong>{{ attach_library('theme/library') }}</strong> — attach assets.",link:null},
+{title:"Twig filters",body:"<strong>|t</strong> — translate. <strong>|raw</strong> — unescaped HTML (use carefully). <strong>|default('fallback')</strong> — fallback if null/empty. <strong>|date('Y-m-d')</strong> — format date. <strong>|clean_class</strong> — sanitize for CSS class use.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"In a Drupal Twig template, how do you output the title field of a node safely?",options:["<?php echo $node->title; ?>","{{ node.title }}","{{ content.title }}","{% echo title %}"],answer:2,explanation:"{{ content.title }} renders the title field through Drupal's render system (caching, theming, escaping). Use content.field_name for most field rendering."},
+{q:"You want to output raw HTML stored in a text field. Which filter should you use and when is it safe?",options:["|html — always safe","|raw — safe only when content has already been sanitized by Drupal","|escape — converts HTML to plain text","|safe — Drupal's built-in safety filter"],answer:1,explanation:"|raw bypasses Twig's auto-escaping. Only use it for content already sanitized by Drupal (like body field output from content.body — Drupal filters it before passing to Twig). Never use |raw on raw user input."},
+{q:"How do you check if a field has a value before rendering it in Twig?",options:["{% if content.field_image is defined %}","{% if content.field_image %}","{% if node.field_image.value %}","{% if field_image %}"],answer:1,explanation:"{% if content.field_image %} is the Drupal-idiomatic way to check if a rendered field has content. It evaluates to false if the field is empty. Note: this checks the rendered output, not the raw field value."},
+]}},
+{day:"Day 2",title:"Drupal Template Hierarchy & Overrides",goal:"Understand how Drupal's theme system discovers and uses templates.",
+reading:[
+{title:"Template discovery order",body:"Drupal looks for templates in this order: theme → base theme → module. The most specific template wins. Your theme can override any module template by placing an appropriately named file in its /templates directory.",link:"https://www.drupal.org/docs/theming-drupal/working-with-twig-templates"},
+{title:"Template naming conventions",body:"node.html.twig overrides all nodes. node--article.html.twig overrides only articles. node--article--teaser.html.twig overrides articles in teaser view mode. More specific = higher priority.",link:null},
+{title:"Template suggestions",body:"Drupal generates a list of candidate template names for every render. Enable Twig debug mode to see them as HTML comments — this is the fastest way to know which template file to create.",link:null},
+],
+activity:{type:"hands_on",title:"Create custom node templates",intro:"Enable Twig debug and override article templates.",steps:[
+{n:1,title:"Enable Twig debug mode",code:"# In web/sites/default/settings.local.php:\n$settings['twig_debug'] = TRUE;\n$settings['cache']['bins']['render'] = 'cache.backend.null';\nddev drush cr"},
+{n:2,title:"Inspect template suggestions",body:"View an Article page. Right-click → View Source. Look for HTML comments starting with 'THEME HOOK:' and 'FILE NAME SUGGESTIONS:'. Note the most specific suggested template name."},
+{n:3,title:"Create a custom article template",code:"# In your theme's templates/ directory:\n# Copy the base node.html.twig from core and rename:\ncp web/core/themes/olivero/templates/content/node.html.twig web/themes/custom/mytheme/templates/node--article.html.twig"},
+{n:4,title:"Customize the template",body:"Open your copied template and add custom HTML around the content. Add a 'reading-time' section that shows {{ content.field_reading_time }} if it exists."},
+{n:5,title:"Clear cache and test",code:"ddev drush cr\n# Refresh an article page — your custom template should now be active"},
+],aiCheck:{prompt:"Paste the THEME HOOK and FILE NAME SUGGESTIONS comment you found in the HTML source for an Article page. Also paste the key customization you made to your node--article.html.twig template.",checkGoal:"Verify the student has enabled Twig debug, found template suggestions correctly, and created a working template override. Check that they understand the template naming hierarchy. Give feedback on Twig debugging workflow."}}},
+{day:"Day 3",title:"template_preprocess & Custom Variables",goal:"Pass custom PHP-computed variables into Twig templates using preprocess functions.",
+reading:[
+{title:"What template_preprocess does",body:"Preprocess functions (hook_preprocess_HOOK) run before a template renders and can add/modify variables available in the template. They're defined in the .theme file or a module's .module file.",link:null},
+{title:"The function signature",body:"function mytheme_preprocess_node(&$variables) — the $variables array contains everything available to the template, including $variables['node'] (the entity) and $variables['content'] (rendered fields).",link:null},
+{title:"Keep preprocess thin",body:"Preprocess should prepare display variables — format data, compute labels, check conditions. Never do business logic or database queries in preprocess. Use a custom service for anything complex.",link:null},
+],
+activity:{type:"hands_on",title:"Add custom variables to a template",intro:"Use hook_preprocess_node to add a reading time label to article templates.",steps:[
+{n:1,title:"Add preprocess to your .theme file",code:"<?php\n// mytheme.theme\nfunction mytheme_preprocess_node(&$variables): void {\n  $node = $variables['node'];\n  if ($node->bundle() === 'article') {\n    $minutes = $node->get('field_reading_time')->value ?? 0;\n    $variables['reading_time_label'] = $minutes > 0\n      ? $minutes . ' min read'\n      : null;\n  }\n}"},
+{n:2,title:"Use the variable in your template",code:"{# In node--article.html.twig #}\n{% if reading_time_label %}\n  <span class=\"reading-time\">{{ reading_time_label }}</span>\n{% endif %}"},
+{n:3,title:"Test",code:"ddev drush cr\n# View an article — the reading time label should appear"},
+],aiCheck:{prompt:"Paste your preprocess function and the Twig snippet where you use reading_time_label. Does it appear on the article page?",checkGoal:"Verify correct preprocess function naming (theme_preprocess_hook), $variables manipulation, and correct Twig variable usage. Check they're not doing business logic in preprocess. Give feedback on the preprocess pattern."}}},
+{day:"Day 4",title:"Libraries — CSS, JS & drupalSettings",goal:"Attach CSS and JavaScript to Drupal pages correctly using the Libraries API.",
+reading:[
+{title:"*.libraries.yml",body:"Drupal uses a libraries system to declare and attach CSS/JS assets. Define libraries in your theme's or module's {name}.libraries.yml file. Assets are attached explicitly — Drupal never auto-includes all CSS/JS.",link:"https://www.drupal.org/docs/theming-drupal/adding-stylesheets-css-and-javascript-js-to-a-drupal-theme"},
+{title:"Attaching libraries",body:"In a template: {{ attach_library('mytheme/my-library') }}. In a preprocess: $variables['#attached']['library'][] = 'mytheme/my-library'. In a render array: '#attached' => ['library' => ['mytheme/my-library']].",link:null},
+{title:"drupalSettings — passing PHP to JS",body:"To pass PHP values to JavaScript: in preprocess add $variables['#attached']['drupalSettings']['myModule']['setting'] = $value. In JS access via drupalSettings.myModule.setting.",link:null},
+{title:"Drupal.behaviors",body:"Always wrap JS in Drupal.behaviors, not $(document).ready(). Behaviors re-run on AJAX-loaded content, making your JS work with Views AJAX, CKEditor, etc.",link:null},
+],
+activity:{type:"hands_on",title:"Create a theme library with CSS and JS",intro:"Define a library, attach it, and pass a value from PHP to JavaScript.",steps:[
+{n:1,title:"Define the library",code:"# mytheme.libraries.yml\narticle-enhancements:\n  version: 1.0\n  css:\n    theme:\n      css/article.css: {}\n  js:\n    js/article.js: {}"},
+{n:2,title:"Create CSS file",code:"/* css/article.css */\n.reading-time { font-size: 0.85em; color: #666; font-style: italic; }\n.reading-time::before { content: '⏱ '; }"},
+{n:3,title:"Create JS with Drupal.behaviors",code:"// js/article.js\n(function (Drupal, drupalSettings) {\n  Drupal.behaviors.articleEnhancements = {\n    attach: function (context) {\n      const titles = context.querySelectorAll('.node--type-article h1');\n      titles.forEach(t => t.style.borderBottom = '2px solid #0078d4');\n    }\n  };\n})(Drupal, drupalSettings);"},
+{n:4,title:"Attach to article template",code:"{# In node--article.html.twig, at top: #}\n{{ attach_library('mytheme/article-enhancements') }}"},
+{n:5,title:"Test",code:"ddev drush cr\n# Visit an article — CSS and JS should both be active"},
+],aiCheck:{prompt:"Paste your mytheme.libraries.yml and confirm: (1) Does the reading-time CSS styling work? (2) Does the JS border appear on article titles?",checkGoal:"Verify correct libraries.yml structure (version, css/js paths, SMACSS category for CSS), correct attach_library usage in template, and working Drupal.behaviors pattern in JS. Give feedback on library best practices."}}},
+{day:"Day 5",title:"Single Directory Components (SDC)",goal:"Build modern Drupal components using the SDC system introduced in Drupal 10.3.",
+reading:[
+{title:"What SDC is",body:"Single Directory Components (SDC) groups a component's template, CSS, JS, and metadata into a single folder. Available in Drupal 10.3+. This is the modern way to build reusable UI components in Drupal.",link:"https://www.drupal.org/docs/develop/theming-drupal/using-single-directory-components"},
+{title:"Component structure",body:"Each component lives in a folder: my-card/my-card.component.yml (metadata/props), my-card/my-card.twig (template), my-card/my-card.css (styles), my-card/my-card.js (behavior). The folder name is the component ID.",link:null},
+{title:"Props and slots",body:"Props are typed inputs declared in the component.yml schema. Slots are arbitrary Twig content blocks passed into the component. Props = data; slots = markup. This is similar to React props/children.",link:null},
+],
+activity:{type:"hands_on",title:"Build a Card SDC",intro:"Create a reusable Card component using SDC, then use it in a node template.",steps:[
+{n:1,title:"Create component folder",code:"mkdir -p web/themes/custom/mytheme/components/article-card"},
+{n:2,title:"Create component.yml",code:"# article-card.component.yml\nname: Article Card\ndescription: A card for displaying article teasers\nprops:\n  type: object\n  properties:\n    title:\n      type: string\n      title: Title\n    url:\n      type: string\n      title: URL\n    reading_time:\n      type: integer\n      title: Reading time in minutes"},
+{n:3,title:"Create component Twig",code:"{# article-card.twig #}\n<article class=\"article-card\">\n  <h3 class=\"article-card__title\">\n    <a href=\"{{ url }}\">{{ title }}</a>\n  </h3>\n  {% if reading_time %}\n    <span class=\"article-card__time\">{{ reading_time }} min read</span>\n  {% endif %}\n  {% if content %}\n    <div class=\"article-card__body\">{{ content }}</div>\n  {% endif %}\n</article>"},
+{n:4,title:"Use in a node template",code:"{# In node--article--teaser.html.twig #}\n{% include 'mytheme:article-card' with {\n  title: label,\n  url: url,\n  reading_time: content.field_reading_time|render|striptags|trim\n} %}"},
+{n:5,title:"Test",code:"ddev drush cr\n# View an article in teaser view mode (e.g., in a View)"},
+],aiCheck:{prompt:"Paste your article-card.component.yml and article-card.twig. Does the component render correctly in teaser view mode?",checkGoal:"Verify correct SDC structure: component.yml with props schema, Twig template using prop names correctly, correct include syntax with 'theme:component-name'. Give feedback on component design and SDC best practices for Drupal 10.3+."}}},
+{day:"Day 6",title:"Accessibility & Performance",goal:"Build themes that are fast and accessible — non-negotiable for professional work.",
+reading:[
+{title:"Accessibility in Drupal themes",body:"Drupal core is accessible by default. Custom themes can break this. Key areas: heading hierarchy (one H1 per page), alt text on images, sufficient color contrast, keyboard navigation, skip links, ARIA attributes.",link:"https://www.drupal.org/docs/accessibility"},
+{title:"Performance: asset aggregation",body:"Enable CSS/JS aggregation in production (Admin → Config → Development → Performance). Drupal merges and minifies assets. Don't add inline styles or scripts — always use the Libraries API.",link:null},
+{title:"Lazy loading images",body:"Use the loading='lazy' attribute on images not in the viewport. Drupal's responsive images module can add this automatically. Significant performance win for image-heavy sites.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"A Drupal theme has these headings: H1 (site name), H2 (page title), H3 (article title), H4 (sidebar heading). What accessibility problem exists?",options:["No problem — multiple heading levels are fine","The page should only have one H1 — the page title should be H1, not H2","H4 should not be used in sidebars","There should be no H1 at all"],answer:1,explanation:"Each page should have exactly one H1, which should be the main page content title (not the site name). The site name should use a different element or ARIA role. Screen readers use the H1 to identify page content."},
+{q:"You add a custom background image via CSS in your theme. How should you handle the alt text?",options:["Add alt='background image' to the img tag","CSS background images don't support alt text — use them only for decorative images. Content images must use the img tag with meaningful alt text","Add an aria-label to the element","Background images automatically get alt text from the file name"],answer:1,explanation:"CSS background-image is for decorative visuals only — they're invisible to screen readers. Any image that conveys information must be an <img> tag with descriptive alt text. This is WCAG 2.1 Success Criterion 1.1.1."},
+]}},
+{day:"Day 7",title:"Phase 4 Retrospective",goal:"Consolidate theming skills and prepare for the advanced decoupled phase.",
+reading:[
+{title:"Front-end Specialist readiness",body:"You now have strong coverage of the Acquia Certified Front-end Specialist exam: Twig templates, template hierarchy, preprocess functions, Libraries API, SDC, and accessibility. You'll need 1-2 real themed projects to fill in exam scenario practice.",link:null},
+],
+activity:{type:"ai_open",prompt:"Phase 4 final — answer these two: (1) A designer gives you a Figma file with a complex article page design: hero image full-width, article content in a centered column, a 3-column 'related articles' section at the bottom, and a sticky table of contents sidebar. Walk through your entire implementation plan — which Drupal systems and template files you'd create, how you'd structure your CSS, and how you'd use SDC. (2) Drupal's performance tab warns that CSS/JS aggregation is disabled. What does enabling it do, and are there any cases where a developer would want to keep it disabled?",checkGoal:"Evaluate Phase 4 theming mastery. (1) should include: node--article.html.twig, SDC for related articles card, preprocess for ToC generation, Libraries with CSS custom properties for layout, maybe layout_builder sections; (2) aggregation merges/minifies assets for prod — disabled in dev for easier debugging with source maps. Score 0-10 with detailed Phase 4 feedback."}},
+]},
+]},
+{id:5,label:"Phase 5",name:"Decoupled & Advanced",color:"#6bc44a",bg:"#14200d",weeks:[
+{label:"Week 1",name:"JSON:API, REST & GraphQL",days:[
+{day:"Day 1",title:"JSON:API Fundamentals",goal:"Learn to expose Drupal content via JSON:API for decoupled frontends.",
+reading:[
+{title:"What JSON:API provides",body:"Drupal's JSON:API module (core since Drupal 8.7) exposes all content entities as a REST API following the JSON:API spec. Enable the module — no custom code needed to start consuming content.",link:"https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module"},
+{title:"URL structure",body:"<strong>/jsonapi/node/article</strong> — all articles. <strong>/jsonapi/node/article/{uuid}</strong> — specific article. <strong>/jsonapi/taxonomy_term/tags</strong> — all tags. Pattern: /jsonapi/{entity_type}/{bundle}.",link:null},
+{title:"Query parameters",body:"<strong>?filter[status]=1</strong> — published only. <strong>?fields[node--article]=title,body</strong> — sparse fieldsets. <strong>?include=field_tags</strong> — include related entities inline. <strong>?sort=-created</strong> — sort newest first.",link:null},
+],
+activity:{type:"hands_on",title:"Query your Drupal site via JSON:API",intro:"Enable JSON:API and build increasingly complex API queries.",steps:[
+{n:1,title:"Enable JSON:API",code:"ddev drush pm:enable jsonapi -y && ddev drush cr"},
+{n:2,title:"Basic query — all articles",body:"In your browser or Insomnia/Postman, visit: https://your-site.ddev.site/jsonapi/node/article"},
+{n:3,title:"Filter published + sparse fields",body:"Visit: /jsonapi/node/article?filter[status]=1&fields[node--article]=title,created&sort=-created"},
+{n:4,title:"Include related taxonomy terms",body:"Visit: /jsonapi/node/article?include=field_tags&filter[status]=1&page[limit]=3"},
+{n:5,title:"Test with curl",code:"curl -s 'https://your-site.ddev.site/jsonapi/node/article?page[limit]=1&fields[node--article]=title' | python3 -m json.tool"},
+],aiCheck:{prompt:"Paste one article object from your JSON:API response (the first item in the 'data' array). What structure does it have? What's in the 'attributes' vs 'relationships' sections?",checkGoal:"Verify the student has successfully queried JSON:API and understands the response structure: 'type', 'id' (UUID), 'attributes' (field values), 'relationships' (related entities), 'links' (self URL). Give feedback on JSON:API structure and query capabilities."}}},
+{day:"Day 2",title:"Authentication & Write Operations",goal:"Secure your JSON:API with OAuth and perform create/update operations.",
+reading:[
+{title:"Simple OAuth module",body:"Simple OAuth implements OAuth 2.0 for Drupal. It provides access tokens for JSON:API authentication — required for any write operations and for accessing unpublished/restricted content.",link:"https://www.drupal.org/project/simple_oauth"},
+{title:"JSON:API write operations",body:"With authentication, JSON:API supports POST (create), PATCH (update), and DELETE. The request body must follow the JSON:API spec format — {'data':{'type':'node--article','attributes':{...}}}",link:null},
+{title:"Access control",body:"JSON:API respects all Drupal permissions. Unauthenticated users can only access what the anonymous role can see. Design your permissions intentionally for API access.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"You want your Next.js frontend to create Article nodes via JSON:API. What do you need to set up?",options:["Just enable JSON:API — it allows writes by default","Install Simple OAuth, create a Consumer, create a user with node creation permissions, and get an access token","Use Drupal's built-in API key system","Disable CSRF protection in settings.php"],answer:1,explanation:"You need: Simple OAuth module, an OAuth Consumer entity, a dedicated API user with appropriate permissions, and an OAuth access token. The token is sent as a Bearer header with each write request."},
+{q:"A JSON:API PATCH request to update an article's title fails with 403 Forbidden even though your user has 'edit any content' permission. What's the most likely cause?",options:["JSON:API doesn't support PATCH","The user's OAuth token has expired or isn't being sent in the Authorization header","You need to rebuild caches","PATCH is only available on node/page content type"],answer:1,explanation:"A 403 on an authenticated write operation usually means the access token is missing or expired. Check: Is 'Authorization: Bearer {token}' in your request headers? Has the token expired (check OAuth expiry)? Is the content-type header set correctly?"},
+]}},
+{day:"Day 3",title:"Consuming Drupal JSON:API from Next.js",goal:"Build a working Next.js frontend that consumes your Drupal JSON:API.",
+reading:[
+{title:"next-drupal library",body:"The next-drupal package (by Chapter Three) provides a DrupalClient that simplifies consuming Drupal's JSON:API from Next.js — handling authentication, serialization, and preview mode.",link:"https://next-drupal.org"},
+{title:"Data fetching patterns",body:"In Next.js 13+ App Router: use server components and fetch() directly with revalidation. In Pages Router: use getStaticProps/getStaticPaths for static generation from Drupal content.",link:null},
+{title:"Your React/Next.js background",body:"This is where your existing React experience becomes a major asset. The complexity is entirely on the Drupal config side — consuming JSON:API is just fetch() with a specific URL structure.",link:null},
+],
+activity:{type:"hands_on",title:"Build a Next.js page from Drupal content",intro:"Create a simple Next.js app that fetches and displays articles from your DDEV Drupal site.",steps:[
+{n:1,title:"Create Next.js app",code:"npx create-next-app@latest drupal-frontend --typescript --app\ncd drupal-frontend"},
+{n:2,title:"Fetch articles from Drupal",code:"// app/page.tsx\nconst res = await fetch(\n  'https://your-site.ddev.site/jsonapi/node/article?filter[status]=1&fields[node--article]=title,body,created&sort=-created',\n  { next: { revalidate: 60 } }\n);\nconst { data } = await res.json();\nreturn (\n  <main>\n    {data.map((article: any) => (\n      <article key={article.id}>\n        <h2>{article.attributes.title}</h2>\n        <div dangerouslySetInnerHTML={{__html: article.attributes.body?.processed ?? ''}} />\n      </article>\n    ))}\n  </main>\n);"},
+{n:3,title:"Handle CORS",code:"# In Drupal, install the CORS module or add to services.yml:\n# cors.config:\n#   enabled: true\n#   allowedOrigins: ['http://localhost:3000']\nddev drush cr"},
+{n:4,title:"Run the Next.js app",code:"npm run dev\n# Visit http://localhost:3000"},
+],aiCheck:{prompt:"Describe what you see in your Next.js app: (1) Are the Drupal articles showing? (2) Did you run into any CORS errors? How did you fix them? (3) What does the JSON:API response structure look like when you console.log(data)?",checkGoal:"Verify the student has a working decoupled Drupal + Next.js setup. Check they resolved CORS, understand the JSON:API response structure, and can map attributes to React components. Give feedback on the decoupled architecture pattern."}}},
+{day:"Day 4",title:"Caching in Drupal",goal:"Understand and implement Drupal's multi-layer caching system.",
+reading:[
+{title:"Drupal's cache layers",body:"<strong>Page cache</strong>: caches full anonymous pages. <strong>Dynamic page cache</strong>: caches pages with per-user variations (uses cache contexts). <strong>Render cache</strong>: caches individual render array fragments. Each layer is independent.",link:"https://www.drupal.org/docs/drupal-apis/cache-api"},
+{title:"Cache tags",body:"Cache tags allow surgical cache invalidation. A node with ID 42 has tag 'node:42'. Any cached content tagged with 'node:42' is invalidated when node 42 is saved. Tags propagate up through render arrays automatically.",link:null},
+{title:"Cache contexts",body:"Cache contexts define what makes a cached item unique. 'user' = separate cache per user. 'url' = per URL. 'languages:language_interface' = per language. Use the minimum contexts needed — contexts kill performance.",link:null},
+{title:"Cache bins",body:"Different types of data use different cache bins: 'render' (render cache), 'data' (custom data), 'bootstrap' (fast-access config). Use \\Drupal::cache('data') for your custom cached data.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"You build a block that shows the current user's name. The first user who loads it sees their name, but then every subsequent user sees the first user's name. What cache concept fixes this?",options:["Increase the cache lifetime","Add cache context 'user' to the block's render array","Add cache tag 'user:current'","Disable caching for the block"],answer:1,explanation:"Cache contexts define uniqueness. Adding '#cache' => ['contexts' => ['user']] to the block's render array tells Drupal to cache a separate version per user. Without it, the first cached version is served to everyone."},
+{q:"You update a node's title but the change doesn't appear on the homepage for 10 minutes. What's the correct Drupal solution?",options:["Set cache lifetime to 0 for all pages","Make sure the homepage render array includes the node's cache tag — Drupal will auto-invalidate when the node is saved","Manually clear cache on every node save","Disable the page cache"],answer:1,explanation:"Cache tags solve this. If the homepage render array carries the tag 'node:42', Drupal automatically invalidates it when node 42 is saved. No need to set short cache lifetimes or manually clear cache."},
+]}},
+{day:"Day 5",title:"Custom Cache Implementation",goal:"Implement caching in custom modules using the Cache API.",
+reading:[
+{title:"When to cache custom data",body:"Cache expensive operations: external API calls, complex entity queries, computed data that rarely changes. Rule: if it takes >100ms and the result doesn't change between requests, cache it.",link:null},
+{title:"The Cache API",body:"$cache = \\Drupal::cache('data'); $cache->get('my_cache_key') — get cached item. $cache->set('my_cache_key', $data, Cache::PERMANENT, ['node:list']) — store with tags. $cache->invalidateTags(['node:list']) — invalidate.",link:null},
+],
+activity:{type:"hands_on",title:"Add caching to your NodeHelper service",intro:"Wrap your getLatestNodes method with a cache layer.",steps:[
+{n:1,title:"Update NodeHelper to use cache",code:"<?php\n// Add to NodeHelper.php constructor:\nprivate \\Drupal\\Core\\Cache\\CacheBackendInterface $cache;\n\n// Update constructor:\npublic function __construct(EntityTypeManagerInterface $em, \\Drupal\\Core\\Cache\\CacheBackendInterface $cache) {\n  $this->entityTypeManager = $em;\n  $this->cache = $cache;\n}\n\n// Wrap getLatestNodes():\npublic function getLatestNodes(int $count = 5): array {\n  $cid = 'my_module:latest_nodes:' . $count;\n  if ($cached = $this->cache->get($cid)) {\n    return $cached->data;\n  }\n  // ... existing query code ...\n  $nodes = $storage->loadMultiple($ids);\n  $this->cache->set($cid, $nodes, \\Drupal\\Core\\Cache\\Cache::PERMANENT, ['node_list']);\n  return $nodes;\n}"},
+{n:2,title:"Update services.yml to inject cache",code:"# my_first_module.services.yml\nservices:\n  my_first_module.node_helper:\n    class: Drupal\\my_first_module\\NodeHelper\n    arguments: ['@entity_type.manager', '@cache.data']"},
+{n:3,title:"Test cache hit",code:"ddev drush cr\n# Call the service twice, second call should be instant:\nddev drush php:eval \"\n\\$t1 = microtime(true);\n\\Drupal::service('my_first_module.node_helper')->getLatestNodes(5);\n\\$t2 = microtime(true);\n\\Drupal::service('my_first_module.node_helper')->getLatestNodes(5);\n\\$t3 = microtime(true);\necho 'First call: '.round(($t2-$t1)*1000).'ms, Second: '.round(($t3-$t2)*1000).'ms';\n\""},
+],aiCheck:{prompt:"Paste your updated NodeHelper.php getLatestNodes method and the output of the timing test. Is the second call faster than the first?",checkGoal:"Verify correct cache implementation: cache->get() checks before query, cache->set() stores with node_list tag, services.yml passes @cache.data. Check that the second call is measurably faster. Give feedback on cache strategy and tag selection."}}},
+{day:"Day 6",title:"Deployment, DevOps & Environment Management",goal:"Set up a professional deployment workflow for Drupal.",
+reading:[
+{title:"The deployment checklist",body:"Every Drupal deployment should run: git pull, composer install --no-dev, drush updb -y, drush cim -y, drush cr. Automate this. Never skip drush updb or cim on deploy.",link:null},
+{title:"Coolify + AWS Lightsail for Drupal",body:"Since you already have a Coolify setup on AWS Lightsail from your MA-Portal work, Drupal can be deployed as a Docker container or via Coolify's PHP/Nginx stack. Environment variables handle per-env settings.",link:null},
+{title:"settings.php per environment",body:"Use settings.local.php (excluded from Git) for local overrides. Use environment variables or platform-specific settings files for staging/prod. Never commit database credentials to Git.",link:null},
+],
+activity:{type:"hands_on",title:"Set up a deployment script",intro:"Create a reusable deployment script that handles the full Drupal deploy cycle.",steps:[
+{n:1,title:"Create deploy.sh",code:"#!/bin/bash\nset -e\necho '==> Pulling latest code'\ngit pull origin main\necho '==> Installing dependencies'\ncomposer install --no-dev --optimize-autoloader\necho '==> Running database updates'\ndrush updb -y\necho '==> Importing configuration'\ndrush cim -y\necho '==> Rebuilding caches'\ndrush cr\necho '==> Deployment complete'"},
+{n:2,title:"Create a .env.example",code:"# .env.example — commit this\nDB_HOST=localhost\nDB_NAME=drupal\nDB_USER=drupal\nDB_PASS=\nDRUPAL_HASH_SALT=\nAPP_ENV=production"},
+{n:3,title:"Add Trusted Host Pattern for production",code:"# In settings.php (not .local.php):\n$settings['trusted_host_patterns'] = [\n  '^yourdomain\\.com$',\n  '^www\\.yourdomain\\.com$',\n];"},
+{n:4,title:"Test the deploy script locally",code:"chmod +x deploy.sh\n# In your DDEV project:\nddev ssh && bash /var/www/html/deploy.sh"},
+],aiCheck:{prompt:"Paste your deploy.sh script. Explain in 2-3 sentences: why does the order of commands in the deploy script matter? What would happen if you ran drush cim before drush updb?",checkGoal:"Verify correct deploy script order and understanding. Key insight: updb must run before cim because database updates may alter the schema that config import relies on. If you cim first, database updates might fail or produce inconsistencies. Give feedback on deployment strategy."}}},
+{day:"Day 7",title:"Phase 5 Capstone: Headless Drupal + Next.js",goal:"Build and deploy a complete decoupled Drupal application.",
+reading:[
+{title:"What you're building",body:"A headless Drupal backend with your events content, JSON:API, Simple OAuth authentication, and a Next.js frontend that fetches, displays, and filters events. Deployed with a professional config workflow.",link:null},
+],
+activity:{type:"hands_on",title:"Full capstone build",intro:"This is your Phase 5 capstone. Build the complete decoupled stack.",steps:[
+{n:1,title:"Drupal backend prep",body:"Make sure your events content type has meaningful content (5+ events). Enable JSON:API + Simple OAuth. Configure CORS for your Next.js origin. Export all config."},
+{n:2,title:"Next.js events listing page",code:"// Fetch events from Drupal\nconst res = await fetch(\n  `${process.env.DRUPAL_BASE_URL}/jsonapi/node/event` +\n  `?filter[status]=1&sort=field_event_date` +\n  `&fields[node--event]=title,field_event_date,field_location,field_category` +\n  `&include=field_category`,\n  { next: { revalidate: 300 } }\n);"},
+{n:3,title:"Event detail page with SSG",code:"// app/events/[slug]/page.tsx\nexport async function generateStaticParams() {\n  const res = await fetch(`${process.env.DRUPAL_BASE_URL}/jsonapi/node/event?fields[node--event]=path`);\n  const { data } = await res.json();\n  return data.map((e: any) => ({ slug: e.attributes.path.alias.slice(1) }));\n}"},
+{n:4,title:"Deploy to Coolify",body:"Create a Next.js application in Coolify pointing to your Git repo. Set DRUPAL_BASE_URL environment variable. Deploy and verify production."},
+{n:5,title:"Document your architecture",body:"Write a ARCHITECTURE.md: Drupal version, key modules, JSON:API endpoints used, Next.js routing strategy, deployment process, environment variables needed."},
+],aiCheck:{prompt:"Describe your completed capstone: (1) What endpoints does your Next.js app call? (2) How did you handle the CORS setup? (3) Is it deployed? Share the URL if yes. (4) What was the hardest part?",checkGoal:"Evaluate the Phase 5 capstone. Key checks: Next.js is actually fetching from Drupal JSON:API, events are displayed and linked to detail pages, student understands the decoupled architecture. Give comprehensive feedback on the full-stack Drupal architecture."}}},
+]},
+{label:"Week 2",name:"Advanced caching, multisite & exam prep",days:[
+{day:"Day 8",title:"Varnish & Reverse Proxy Caching",goal:"Understand reverse proxy caching and how Drupal integrates with Varnish.",
+reading:[
+{title:"What Varnish does",body:"Varnish sits in front of Drupal and caches entire HTTP responses. Anonymous page requests are served directly from Varnish without hitting PHP or the database — extremely fast.",link:null},
+{title:"Surrogate keys / cache tags",body:"Drupal sends cache tags as HTTP response headers (X-Drupal-Cache-Tags). Varnish stores these. When a node is saved, Drupal calls Varnish to purge all pages carrying that node's cache tag.",link:null},
+{title:"Purge module",body:"The Purge module (contrib) provides the infrastructure for Drupal to communicate invalidations to Varnish and CDNs. Essential for production Drupal with external caching.",link:"https://www.drupal.org/project/purge"},
+],
+activity:{type:"quiz",questions:[
+{q:"Drupal is configured with Varnish. An anonymous user visits /events and gets a cached response. You then update an event node. How does the /events page get invalidated automatically?",options:["It doesn't — you must manually clear Varnish","Drupal sends the node's cache tags to Varnish via the Purge module, which invalidates all cached pages carrying that tag","Varnish automatically polls Drupal every minute","The page cache lifetime expires after 5 minutes"],answer:1,explanation:"Cache tags + Purge module = automatic, surgical invalidation. When the event node saves, Drupal emits an invalidation for 'node:42'. Purge sends this to Varnish, which purges all cached responses tagged with node:42 — including /events."},
+{q:"A client complains that logged-in users sometimes see cached pages meant for other users. What cache concept is misconfigured?",options:["Cache tags are not set correctly","Cache contexts are missing or wrong — the cache doesn't include a 'user' or 'session' context","The cache lifetime is too long","Varnish is serving all content instead of bypassing for logged-in users"],answer:1,explanation:"Varnish should never cache authenticated requests — the standard config passes cookies to Drupal for logged-in users. If logged-in users see other users' content, cache contexts are missing (should include 'user' context) or Varnish is incorrectly caching authenticated sessions."},
+]}},
+{day:"Day 9",title:"Performance Profiling",goal:"Identify and fix performance bottlenecks in Drupal applications.",
+reading:[
+{title:"Common Drupal performance issues",body:"N+1 queries (loading entities one by one in a loop), uncached expensive computations, missing indexes on custom tables, Views without proper caching, large media files without image styles.",link:null},
+{title:"Profiling tools",body:"<strong>Devel module</strong>: shows query count and execution times per page. <strong>Xhprof/Blackfire</strong>: full PHP profiler. <strong>Drupal's built-in slow query log</strong>: logs queries over a threshold. <strong>Lighthouse</strong>: frontend performance.",link:null},
+{title:"Views performance",body:"Every Views query should have: a result cache enabled, proper use of relationships (avoid loading all related entities), paging limits, and database indexes on filtered fields.",link:null},
+],
+activity:{type:"hands_on",title:"Profile and optimize a slow page",intro:"Use Devel to find query bottlenecks on your site.",steps:[
+{n:1,title:"Install Devel",code:"ddev composer require drupal/devel\nddev drush pm:enable devel -y && ddev drush cr"},
+{n:2,title:"Enable query logging",body:"Admin → Config → Development → Devel settings. Enable 'Display query log'. Set slow query threshold to 50ms."},
+{n:3,title:"Visit a content page",body:"Go to one of your article or event pages. Look at the query log at the bottom — how many queries? Any over 50ms?"},
+{n:4,title:"Add a Views result cache",body:"Edit any View. Advanced → Caching → Change to 'Time-based'. Set result cache to 1 hour."},
+{n:5,title:"Measure before and after",code:"# Reload the page with cache enabled vs disabled\n# Note query count difference in the Devel query log"},
+],aiCheck:{prompt:"What did you find in the Devel query log? How many queries on the page? Were any slow? What optimization did you make and what was the before/after query count?",checkGoal:"Evaluate the student's performance profiling experience. Key insights: Views result caching reduces queries significantly, query count is a useful performance proxy, N+1 patterns appear as many similar queries. Give feedback on performance optimization strategy."}}},
+{day:"Day 10",title:"Multisite Configuration",goal:"Understand Drupal's multisite feature for managing multiple sites from one codebase.",
+reading:[
+{title:"What multisite is",body:"Drupal can serve multiple sites from one codebase. Each site has its own database, files directory, and settings.php. The sites/sites.php file maps hostnames to site directories.",link:"https://www.drupal.org/docs/multisite-drupal"},
+{title:"sites/sites.php",body:"Maps hostnames to site folder names: $sites['site2.example.com'] = 'site2'; Drupal reads settings from sites/site2/settings.php and uses site2's database.",link:null},
+{title:"When to use multisite",body:"Use for: agency managing multiple client sites on one server, white-label product with shared features, franchise networks. Avoid if sites diverge significantly — separate codebases are cleaner long-term.",link:null},
+],
+activity:{type:"quiz",questions:[
+{q:"You're running a Drupal multisite with 3 sites. Site A gets a security update to a custom module. What happens to sites B and C?",options:["Nothing — each site has its own module files","Since all sites share the same codebase, the update applies to all three immediately","You must update each site separately","Only Site A gets the update unless you manually copy files"],answer:1,explanation:"This is both the power and the risk of multisite. A codebase change affects all sites simultaneously. This means security patches deploy everywhere instantly — but it also means a breaking change breaks all sites. Test thoroughly before deploying to a multisite production environment."},
+]}},
+{day:"Day 11",title:"Acquia Certification Exam Prep",goal:"Map your learning to Acquia certification domains and identify gaps.",
+reading:[
+{title:"Certification path recap",body:"Site Builder: Phase 1-2 content. Developer: Phases 1-4. Front-end Specialist: Phases 1, 4. Back-end Specialist: Phases 1, 3, 5. Triple Expert: all three specialist certs (no extra exam).",link:"https://www.acquia.com/support/training-certification/acquia-certification"},
+{title:"Exam format",body:"All exams are scenario-based multiple choice. Questions describe a situation and ask which approach is best. You need real project experience — the exams test judgment, not just knowledge.",link:null},
+{title:"Free prep resources",body:"Acquia Academy (free tier), Drupalize.Me certification guides, the official study guides on docs.acquia.com, and the Drupal API reference for specific function knowledge.",link:null},
+],
+activity:{type:"ai_open",prompt:"Certification readiness self-assessment: Answer these five scenario-based questions as if you were in the actual exam. (1) A client's editorial team needs to manage events but should NOT be able to change the site's theme or install modules. How do you configure this in Drupal? (2) You need to display a list of the 5 most recent articles by the current user on their profile page. What combination of Drupal tools would you use? (3) A custom module's hook_node_presave is running but the changes to the node aren't persisting after save. What are two likely causes? (4) Your JSON:API endpoint for articles is returning all fields including sensitive internal notes. How do you restrict which fields are exposed? (5) A page is slow. You add Devel and see 150 database queries. What common Drupal anti-pattern causes this and how do you fix it?",checkGoal:"Evaluate certification readiness with scenario-based questions. Key answers: (1) custom role with editorial permissions, deny admin permissions; (2) Views with contextual filter for current user; (3) not calling $node->save() again (in presave you modify but don't save, Drupal saves after the hook) OR incorrect field API usage; (4) JSON:API field access control or disabling specific fields via resource type settings; (5) N+1 queries from loading entities in a loop — use entityQuery + loadMultiple instead. Score each answer 0-2 and give total out of 10."}},
+{day:"Day 12",title:"Full Path Retrospective & Next Steps",goal:"Reflect on the complete learning journey and plan your certification path.",
+reading:[
+{title:"What you've built",body:"A complete foundation: local environment, custom modules, site building, custom theming, decoupled API, caching, deployment. This is the knowledge base for all five Acquia certifications.",link:null},
+{title:"What comes next",body:"Real projects. The certifications reward experience with real-world scenarios. Take on 2-3 Drupal freelance or personal projects before sitting exams. Contribute to drupal.org. Join the Drupal Slack.",link:null},
+{title:"Zero One Byte angle",body:"Drupal expertise is a strong differentiator for your agency. Enterprise clients (government, universities, large NGOs) actively seek Drupal developers. Acquia certifications signal professional credibility in those markets.",link:null},
+],
+activity:{type:"ai_open",prompt:"Final reflection — answer all four: (1) Which certification will you pursue first and why? Map your current knowledge gaps to the exam domains for that cert. (2) What are the three most important Drupal concepts you learned in this entire program, and why did each matter? (3) You're pitching Drupal to a potential Zero One Byte client who is currently on WordPress. What's your pitch? (4) Describe the architecture of the most complex Drupal site you'd feel confident building right now — content types, modules, theming approach, API strategy, and deployment.",checkGoal:"Evaluate the student's overall program completion and strategic thinking. Look for: realistic certification sequencing, genuine reflection on key concepts (not just listing topics), a compelling WP-to-Drupal pitch relevant to their agency context, and an ambitious but realistic site architecture. Give encouraging, specific, comprehensive feedback to close out the entire program. Acknowledge their achievement."}},
+]},
+]},
+];
+
+// ─── STATE ───
+let currentPhase=0,currentWeek=0,currentDay=0;
+const completed=JSON.parse(localStorage.getItem('drupal-learn-v2')||'{}');
+function saveCompleted(k){completed[k]=true;localStorage.setItem('drupal-learn-v2',JSON.stringify(completed));updateProgress();}
+function updateProgress(){
+  const total=PHASES.reduce((a,p)=>a+p.weeks.reduce((b,w)=>b+w.days.length,0),0);
+  const done=Object.keys(completed).length;
+  const pct=Math.round((done/total)*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+
+// ─── SIDEBAR ───
+function buildSidebar(){
+  const nav=document.getElementById('phase-nav');
+  nav.innerHTML='';
+  PHASES.forEach((phase,pi)=>{
+    const grp=document.createElement('div');
+    grp.className='phase-group'+(pi===0?' open':'');
+    grp.id='pg-'+pi;
+    const weeks=phase.weeks.map((w,wi)=>`<button class="week-btn${pi===0&&wi===0?' active':''}" id="wb-${pi}-${wi}" onclick="navigateTo(${pi},${wi},0)"><span class="week-dot"></span>${w.label}: ${w.name}</button>`).join('');
+    grp.innerHTML=`<button class="phase-header-btn${pi===0?' active':''}" id="phb-${pi}" onclick="togglePhaseNav(${pi})"><span class="phase-dot" style="background:${phase.bg};color:${phase.color};border:1px solid ${phase.color}40">${pi+1}</span>${phase.label}</button><div class="week-items">${weeks}</div>`;
+    nav.appendChild(grp);
+  });
+}
+function togglePhaseNav(pi){document.querySelectorAll('.phase-group').forEach((g,i)=>{if(i===pi)g.classList.toggle('open');});}
+
+// ─── NAV ───
+function navigateTo(pi,wi,di){
+  currentPhase=pi;currentWeek=wi;currentDay=di;
+  document.querySelectorAll('.week-btn').forEach(b=>b.classList.remove('active'));
+  const wb=document.getElementById(`wb-${pi}-${wi}`);
+  if(wb)wb.classList.add('active');
+  renderDay();
+  window.scrollTo(0,0);
+}
+function nextDay(){
+  const phase=PHASES[currentPhase],week=phase.weeks[currentWeek];
+  saveCompleted(`${currentPhase}-${currentWeek}-${currentDay}`);
+  if(currentDay<week.days.length-1)navigateTo(currentPhase,currentWeek,currentDay+1);
+  else if(currentWeek<phase.weeks.length-1)navigateTo(currentPhase,currentWeek+1,0);
+  else if(currentPhase<PHASES.length-1)navigateTo(currentPhase+1,0,0);
+}
+function prevDay(){
+  if(currentDay>0)navigateTo(currentPhase,currentWeek,currentDay-1);
+  else if(currentWeek>0){const pw=PHASES[currentPhase].weeks[currentWeek-1];navigateTo(currentPhase,currentWeek-1,pw.days.length-1);}
+  else if(currentPhase>0){const pp=PHASES[currentPhase-1];const lw=pp.weeks[pp.weeks.length-1];navigateTo(currentPhase-1,pp.weeks.length-1,lw.days.length-1);}
+}
+
+// ─── RENDER ───
+function renderDay(){
+  const phase=PHASES[currentPhase],week=phase.weeks[currentWeek],day=week.days[currentDay];
+  const key=`${currentPhase}-${currentWeek}-${currentDay}`;
+  const color=phase.color,bg=phase.bg;
+  let html=`<div class="day-header"><div class="day-number" style="background:${bg};color:${color};border:1px solid ${color}30">${phase.label} / ${week.label} / ${day.day}</div><div class="day-meta"><h2>${day.title}</h2><p>${day.goal}</p></div></div>`;
+  if(day.reading&&day.reading.length){
+    html+=`<div class="section-card"><div class="section-card-header"><div class="section-icon" style="background:${bg};color:${color}">📖</div><div><h3>What to learn</h3><p>Read through before starting the activity</p></div></div><div class="section-card-body">`;
+    day.reading.forEach(r=>{html+=`<div class="read-item"><div class="read-bullet" style="background:${color}80"></div><div><p><strong>${r.title}</strong> — ${r.body}</p>${r.link?`<a class="read-link" href="${r.link}" target="_blank">→ ${r.link.replace('https://','')}</a>`:''}</div></div>`;});
+    html+=`</div></div>`;
+  }
+  if(day.activity){
+    const act=day.activity;
+    if(act.type==='quiz')html+=renderQuiz(act,color,bg);
+    else if(act.type==='hands_on')html+=renderHandsOn(act,color,bg);
+    else if(act.type==='ai_open')html+=renderAiOpen(act,color,bg);
+  }
+  html+=`${completed[key]?'<div class="day-complete show">✓ Day completed</div>':'<div class="day-complete" id="done-badge"></div>'}<div class="day-nav"><button class="nav-btn" onclick="prevDay()">← Previous</button><button class="nav-btn next" onclick="nextDay()">Mark complete & next →</button></div>`;
+  document.getElementById('main-content').innerHTML=html;
+}
+
+function renderQuiz(act,color,bg){
+  const qs=act.questions;
+  const state={idx:0,answers:new Array(qs.length).fill(null),submitted:new Array(qs.length).fill(false)};
+  window._qs=state;
+  window.selectOpt=function(oi){const idx=window._qs.idx;if(window._qs.submitted[idx])return;window._qs.answers[idx]=oi;document.querySelectorAll('.quiz-opt').forEach((b,i)=>b.classList.toggle('selected',i===oi));document.getElementById('qsubmit').disabled=false;};
+  window.submitQ=function(idx){const q=qs[idx];const ans=window._qs.answers[idx];window._qs.submitted[idx]=true;document.querySelectorAll('.quiz-opt').forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add('correct');else if(i===ans&&ans!==q.answer)b.classList.add('wrong');});document.getElementById('qsubmit').disabled=true;const feed=document.getElementById('qfeed');feed.className='quiz-feedback show '+(ans===q.answer?'pass':'fail');feed.textContent=(ans===q.answer?'✓ Correct! ':'✗ Not quite. ')+q.explanation;};
+  window.goQ=function(idx){window._qs.idx=idx;document.getElementById('qbody').innerHTML=buildQHtml(idx,qs,state,color);};
+  function buildQHtml(idx,qs,state,color){const q=qs[idx];return `<div class="quiz-q">${q.q}</div><div class="quiz-options" id="qopts">${q.options.map((o,oi)=>`<button class="quiz-opt${state.answers[idx]===oi?' selected':''}" onclick="selectOpt(${oi})" id="qopt-${oi}" ${state.submitted[idx]?'disabled':''}><strong style="color:${color};margin-right:8px;font-family:'IBM Plex Mono',monospace">${String.fromCharCode(65+oi)}.</strong>${o}</button>`).join('')}</div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="quiz-submit" id="qsubmit" onclick="submitQ(${idx})" ${state.answers[idx]===null||state.submitted[idx]?'disabled':''}>Check answer</button><div class="quiz-nav">${idx>0?`<button class="qnav-btn" onclick="goQ(${idx-1})">← Prev</button>`:''}${idx<qs.length-1?`<button class="qnav-btn" onclick="goQ(${idx+1})">Next →</button>`:''}<span class="quiz-counter">${idx+1}/${qs.length}</span></div></div><div class="quiz-feedback" id="qfeed"></div>`;}
+  return `<div class="section-card"><div class="section-card-header"><div class="section-icon" style="background:${bg};color:${color}">🧠</div><div><h3>Knowledge check</h3><p>${qs.length} question${qs.length>1?'s':''} — scenario-based like Acquia exams</p></div></div><div class="section-card-body"><div id="qbody">${buildQHtml(0,qs,state,color)}</div></div></div>`;
+}
+
+function renderHandsOn(act,color,bg){
+  const steps=(act.steps||[]).map(s=>`<div class="activity-step"><div class="step-num" style="background:${bg};color:${color};border:1px solid ${color}40">${s.n}</div><div class="step-content"><h4>${s.title}</h4>${s.body?`<p>${s.body}</p>`:''}${s.code?`<div class="code-block">${s.code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`:''}</div></div>`).join('');
+  let aiCheck='';
+  if(act.aiCheck){
+    const cid='cg_ho_'+Date.now();
+    window._checkGoals=window._checkGoals||{};
+    window._checkGoals[cid]=act.aiCheck.checkGoal;
+    aiCheck=`<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)"><h4 style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">AI verification check</h4><p class="ai-prompt">${act.aiCheck.prompt}</p><div class="ai-check-area"><textarea class="ai-input" id="ai-input-ho" placeholder="Paste your output or answer here..."></textarea><button class="ai-submit" id="ai-submit-ho" data-cid="${cid}" onclick="runAiCheck('ho',window._checkGoals[this.dataset.cid])"><span id="ai-btn-text-ho">Check with AI</span><div class="loading-dots" id="ai-loading-ho" style="display:none"><span></span><span></span><span></span></div></button><div class="ai-response" id="ai-response-ho"></div></div></div>`;
+  }
+  return `<div class="section-card"><div class="section-card-header"><div class="section-icon" style="background:${bg};color:${color}">⚙️</div><div><h3>${act.title}</h3><p>${act.intro}</p></div></div><div class="section-card-body"><div class="activity-steps">${steps}</div>${aiCheck}</div></div>`;
+}
+
+function renderAiOpen(act,color,bg){
+  const cid='cg_open_'+Date.now();
+  window._checkGoals=window._checkGoals||{};
+  window._checkGoals[cid]=act.checkGoal;
+  return `<div class="section-card"><div class="section-card-header"><div class="section-icon" style="background:${bg};color:${color}">✍️</div><div><h3>Open-ended review</h3><p>Test your understanding in your own words</p></div></div><div class="section-card-body"><p class="ai-prompt">${act.prompt}</p><div class="ai-check-area"><textarea class="ai-input" id="ai-input-open" placeholder="Write your answer here..." style="min-height:120px"></textarea><button class="ai-submit" id="ai-submit-open" data-cid="${cid}" onclick="runAiCheck('open',window._checkGoals[this.dataset.cid])"><span id="ai-btn-text-open">Get AI feedback</span><div class="loading-dots" id="ai-loading-open" style="display:none"><span></span><span></span><span></span></div></button><div class="ai-response" id="ai-response-open"></div></div></div></div>`;
+}
+
+// ─── API KEY MANAGEMENT ───
+function getApiKey(){return localStorage.getItem('drupal-learn-api-key')||'';}
+function saveApiKey(k){localStorage.setItem('drupal-learn-api-key',k);}
+
+function showApiKeyModal(onSuccess){
+  // Remove existing modal if any
+  const existing=document.getElementById('api-key-modal');
+  if(existing)existing.remove();
+
+  const modal=document.createElement('div');
+  modal.id='api-key-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;';
+  modal.innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:28px;max-width:480px;width:100%;">
+      <h3 style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;">Enter your Anthropic API key</h3>
+      <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:6px;">The AI check feature needs your Anthropic API key to work. It's stored only in your browser's localStorage — never sent anywhere except directly to Anthropic.</p>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">Get a key at <a href="https://console.anthropic.com" target="_blank" style="color:var(--p1l)">console.anthropic.com</a> → API Keys.</p>
+      <input id="api-key-input" type="password" placeholder="sk-ant-..." style="width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:13px;margin-bottom:8px;" />
+      <p id="api-key-error" style="font-size:12px;color:var(--red);margin-bottom:12px;display:none;">Please enter a valid API key (starts with sk-ant-)</p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="document.getElementById('api-key-modal').remove()" style="padding:8px 16px;background:none;border:1px solid var(--border2);border-radius:var(--radius);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;">Cancel</button>
+        <button id="api-key-save" style="padding:8px 16px;background:var(--p1bg);border:1px solid var(--p1);border-radius:var(--radius);color:var(--p1l);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">Save & continue</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const input=modal.querySelector('#api-key-input');
+  const saveBtn=modal.querySelector('#api-key-save');
+  const errMsg=modal.querySelector('#api-key-error');
+
+  // Pre-fill if key already exists
+  const existing_key=getApiKey();
+  if(existing_key)input.value=existing_key;
+
+  input.focus();
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')saveBtn.click();});
+  saveBtn.addEventListener('click',()=>{
+    const val=input.value.trim();
+    if(!val||!val.startsWith('sk-ant-')){errMsg.style.display='block';input.style.borderColor='var(--red)';return;}
+    saveApiKey(val);
+    modal.remove();
+    onSuccess();
+  });
+}
+
+// ─── AI CHECK ───
+async function runAiCheck(id,checkGoal){
+  const apiKey=getApiKey();
+  if(!apiKey||!apiKey.startsWith('sk-ant-')){
+    showApiKeyModal(()=>runAiCheck(id,checkGoal));
+    return;
+  }
+
+  const input=document.getElementById(`ai-input-${id}`);
+  const btn=document.getElementById(`ai-submit-${id}`);
+  const btnText=document.getElementById(`ai-btn-text-${id}`);
+  const loading=document.getElementById(`ai-loading-${id}`);
+  const responseEl=document.getElementById(`ai-response-${id}`);
+  const userAnswer=input.value.trim();
+  if(!userAnswer){input.style.borderColor='var(--red)';return;}
+  input.style.borderColor='';
+
+  btn.disabled=true;btnText.style.display='none';loading.style.display='flex';responseEl.className='ai-response';
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:1000,
+        system:`You are a Drupal expert and instructor evaluating a student's hands-on work. Task: ${checkGoal}\n\nRespond with:\n1. Score: PASS (8-10/10), PARTIAL (5-7/10), or NEEDS WORK (0-4/10) on the first line\n2. 2-3 sentences of specific constructive feedback\n3. One thing they did well\n4. One specific thing to improve\n\nBe direct, encouraging, and specific.`,
+        messages:[{role:'user',content:userAnswer}]
+      })
+    });
+
+    if(!res.ok){
+      const errData=await res.json().catch(()=>({}));
+      const errMsg=errData?.error?.message||`HTTP ${res.status}`;
+      // If auth error, clear key and prompt again
+      if(res.status===401){
+        saveApiKey('');
+        responseEl.innerHTML='<span style="color:var(--red)">Invalid API key. <button onclick="showApiKeyModal(()=>{})" style="background:none;border:none;color:var(--p1l);cursor:pointer;text-decoration:underline;font-size:13px;">Update key &amp; retry</button></span>';
+        responseEl.className='ai-response show';
+        btn.disabled=false;btnText.style.display='inline';loading.style.display='none';
+        return;
+      }
+      throw new Error(errMsg);
+    }
+
+    const data=await res.json();
+    const text=data.content?.map(c=>c.text||'').join('')||'No response received.';
+    const firstLine=text.split('\n')[0];
+    let scoreClass='score-partial',scoreBadge='◑ Partial';
+    if(/PASS/i.test(firstLine)){scoreClass='score-pass';scoreBadge='✓ PASS';}
+    else if(/NEEDS WORK/i.test(firstLine)){scoreClass='score-fail';scoreBadge='⚠ Needs Work';}
+    const body=text.split('\n').slice(1).join('\n').trim();
+    responseEl.innerHTML=`<div class="ai-score ${scoreClass}">${scoreBadge}</div><div>${body}</div>`;
+    responseEl.className='ai-response show';
+
+  }catch(e){
+    responseEl.innerHTML='<span style="color:var(--red)">Error: '+e.message+'. <button onclick="showApiKeyModal(()=>{})" style="background:none;border:none;color:var(--p1l);cursor:pointer;text-decoration:underline;font-size:13px;">Check API key</button></span>';
+    responseEl.className='ai-response show';
+  }
+
+  btn.disabled=false;btnText.style.display='inline';loading.style.display='none';
+}
+
+buildSidebar();
+renderDay();
+updateProgress();
+// Update key button label
+(function(){const k=getApiKey();const el=document.getElementById('key-btn-label');if(el&&k)el.textContent='API key set ✓';})();
+</script>
+</body>
+</html>
