@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2, Plus, ArrowUp, ArrowDown } from "lucide-react";
 
@@ -53,14 +53,15 @@ type DayData = {
   aiCheck: AiCheck;
 };
 
-export default function EditDayPage({ params }: { params: { id: string } }) {
+export default function EditDayPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [day, setDay] = useState<DayData | null>(null);
 
   useEffect(() => {
-    fetch(`/api/admin/curriculum/days/${params.id}`)
+    fetch(`/api/admin/curriculum/days/${id}`)
       .then((r) => r.json())
       .then((data) => {
         setDay(data);
@@ -70,14 +71,14 @@ export default function EditDayPage({ params }: { params: { id: string } }) {
         console.error("Failed to load day:", err);
         setLoading(false);
       });
-  }, [params.id]);
+  }, [id]);
 
   const handleSave = async () => {
     if (!day) return;
     setSaving(true);
 
     try {
-      const response = await fetch(`/api/admin/curriculum/days/${params.id}`, {
+      const response = await fetch(`/api/admin/curriculum/days/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(day),

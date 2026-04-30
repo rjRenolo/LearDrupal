@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { prisma } from "@/lib/db";
+import { Phase, Week } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   const admin = await requireAdmin();
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify phase exists
-    const phase = await prisma.phase.findUnique({
+    const phase = await Phase.findOne({
       where: { id: phaseId },
     });
 
@@ -34,20 +34,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the max order value within this phase and add 1
-    const maxWeek = await prisma.week.findFirst({
+    const maxWeek = await Week.findOne({
       where: { phaseId },
-      orderBy: { order: "desc" },
-      select: { order: true },
+      order: [['order', 'DESC']],
+      attributes: ['order'],
     });
     const nextOrder = maxWeek ? maxWeek.order + 1 : 0;
 
-    const week = await prisma.week.create({
-      data: {
-        phaseId,
-        order: nextOrder,
-        label,
-        name,
-      },
+    const week = await Week.create({
+      phaseId,
+      order: nextOrder,
+      label,
+      name,
     });
 
     return NextResponse.json(week, { status: 201 });

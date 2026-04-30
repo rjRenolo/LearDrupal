@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { prisma } from "@/lib/db";
+import { Phase } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   const admin = await requireAdmin();
@@ -25,20 +25,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the max order value and add 1
-    const maxPhase = await prisma.phase.findFirst({
-      orderBy: { order: "desc" },
-      select: { order: true },
+    const maxPhase = await Phase.findOne({
+      order: [['order', 'DESC']],
+      attributes: ['order'],
     });
     const nextOrder = maxPhase ? maxPhase.order + 1 : 0;
 
-    const phase = await prisma.phase.create({
-      data: {
-        order: nextOrder,
-        label,
-        name,
-        color,
-        bg,
-      },
+    const phase = await Phase.create({
+      order: nextOrder,
+      label,
+      name,
+      color,
+      bg,
     });
 
     return NextResponse.json(phase, { status: 201 });

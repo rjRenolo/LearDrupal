@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { Phase, Week, Day, ReadingItem, QuizQuestion, HandsOnStep, User } from "@/lib/db";
 import DashboardClient from "./DashboardClient";
 
 export default async function AdminDashboard() {
@@ -11,13 +11,13 @@ export default async function AdminDashboard() {
     stepCount,
     userCount,
   ] = await Promise.all([
-    prisma.phase.count(),
-    prisma.week.count(),
-    prisma.day.count(),
-    prisma.readingItem.count(),
-    prisma.quizQuestion.count(),
-    prisma.handsOnStep.count(),
-    prisma.user.count(),
+    Phase.count(),
+    Week.count(),
+    Day.count(),
+    ReadingItem.count(),
+    QuizQuestion.count(),
+    HandsOnStep.count(),
+    User.count(),
   ]);
 
   const stats = [

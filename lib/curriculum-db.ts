@@ -1,9 +1,4 @@
-/**
- * Query curriculum from database and transform to Phase[] shape
- * This keeps the API and learn page in sync
- */
-
-import { prisma } from "./db";
+import { Phase as PhaseModel, Week as WeekModel, Day as DayModel, ReadingItem as ReadingItemModel, QuizQuestion as QuizQuestionModel, HandsOnStep as HandsOnStepModel, AiCheck as AiCheckModel } from "./db";
 import type {
   Phase,
   Week,
@@ -15,37 +10,33 @@ import type {
   AiCheck,
 } from "./curriculum";
 
-/**
- * Fetch full curriculum from database
- * Returns the same Phase[] shape as the static TypeScript files
- */
-export async function getCurriculumFromDB(): Promise<Phase[]> {
-  const phases = await prisma.phase.findMany({
-    orderBy: { order: "asc" },
-    include: {
-      weeks: {
-        orderBy: { order: "asc" },
-        include: {
-          days: {
-            orderBy: { order: "asc" },
-            include: {
-              reading: { orderBy: { order: "asc" } },
-              questions: { orderBy: { order: "asc" } },
-              steps: { orderBy: { order: "asc" } },
-              aiCheck: true,
-            },
-          },
-        },
-      },
-    },
-  });
+export function getCurriculumFromDB(): Phase[] {
+  const phases = PhaseModel.findAll({ order: [['order', 'ASC']] });
 
-  return phases.map(transformPhase);
+  return phases.map(phaseData => {
+    const weeks = WeekModel.findAll({ where: { phaseId: phaseData.id }, order: [['order', 'ASC']] });
+
+    return transformPhase({
+      ...phaseData,
+      weeks: weeks.map(weekData => {
+        const days = DayModel.findAll({ where: { weekId: weekData.id }, order: [['order', 'ASC']] });
+
+        return {
+          ...weekData,
+          days: days.map(dayData => {
+            const reading = ReadingItemModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] });
+            const questions = QuizQuestionModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] });
+            const steps = HandsOnStepModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] });
+            const aiCheck = AiCheckModel.findOne({ where: { dayId: dayData.id } });
+
+            return { ...dayData, reading, questions, steps, aiCheck };
+          }),
+        };
+      }),
+    });
+  });
 }
 
-/**
- * Transform a Prisma Phase result to the Phase interface
- */
 function transformPhase(phaseData: any): Phase {
   return {
     id: phaseData.order, // Use order as the id for backward compatibility
@@ -57,9 +48,6 @@ function transformPhase(phaseData: any): Phase {
   };
 }
 
-/**
- * Transform a Prisma Week result to the Week interface
- */
 function transformWeek(weekData: any): Week {
   return {
     label: weekData.label,
@@ -68,9 +56,6 @@ function transformWeek(weekData: any): Week {
   };
 }
 
-/**
- * Transform a Prisma Day result to the Day interface
- */
 function transformDay(dayData: any): Day {
   return {
     day: dayData.dayLabel,

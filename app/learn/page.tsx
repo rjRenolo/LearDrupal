@@ -627,7 +627,7 @@ export default function LearnPage() {
   useEffect(() => {
     fetch("/api/curriculum")
       .then(r => r.json())
-      .then(data => setPhases(data))
+      .then(data => { if (Array.isArray(data)) setPhases(data); })
       .catch(err => console.error("Failed to load curriculum:", err));
   }, []);
 

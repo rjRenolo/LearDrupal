@@ -1,11 +1,6 @@
-/**
- * Admin curriculum API with database IDs
- * GET /api/admin/curriculum
- */
-
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { prisma } from "@/lib/db";
+import { Phase, Week, Day, ReadingItem, QuizQuestion, HandsOnStep, AiCheck } from "@/lib/db";
 
 export async function GET() {
   const admin = await requireAdmin();
@@ -14,76 +9,69 @@ export async function GET() {
   }
 
   try {
-    const phases = await prisma.phase.findMany({
-      orderBy: { order: "asc" },
-      include: {
-        weeks: {
-          orderBy: { order: "asc" },
-          include: {
-            days: {
-              orderBy: { order: "asc" },
-              include: {
-                reading: { orderBy: { order: "asc" } },
-                questions: { orderBy: { order: "asc" } },
-                steps: { orderBy: { order: "asc" } },
-                aiCheck: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const phases = Phase.findAll({ order: [['order', 'ASC']] });
 
-    // Transform but keep IDs
-    const transformed = phases.map((phase) => ({
-      dbId: phase.id,
-      id: phase.order,
-      label: phase.label,
-      name: phase.name,
-      color: phase.color,
-      bg: phase.bg,
-      weeks: phase.weeks.map((week) => ({
-        dbId: week.id,
-        label: week.label,
-        name: week.name,
-        days: week.days.map((day) => ({
-          dbId: day.id,
-          day: day.dayLabel,
-          title: day.title,
-          goal: day.goal,
-          reading: day.reading.map((r) => ({
-            title: r.title,
-            body: r.body,
-            link: r.link,
-          })),
-          activity: {
-            type: day.activityType,
-            questions: day.questions.map((q) => ({
-              q: q.q,
-              options: JSON.parse(q.options),
-              answer: q.answer,
-              explanation: q.explanation,
-            })),
-            steps: day.steps.map((s) => ({
-              n: s.n,
-              title: s.title,
-              body: s.body,
-              code: s.code,
-            })),
-            title: day.activityTitle,
-            intro: day.activityIntro,
-            prompt: day.aiPrompt,
-            checkGoal: day.aiCheckGoal,
-            aiCheck: day.aiCheck
-              ? {
-                  prompt: day.aiCheck.prompt,
-                  checkGoal: day.aiCheck.checkGoal,
-                }
-              : undefined,
-          },
-        })),
-      })),
-    }));
+    const transformed = phases.map((phase) => {
+      const weeks = Week.findAll({ where: { phaseId: phase.id }, order: [['order', 'ASC']] });
+
+      return {
+        dbId: phase.id,
+        id: phase.order,
+        label: phase.label,
+        name: phase.name,
+        color: phase.color,
+        bg: phase.bg,
+        weeks: weeks.map((week) => {
+          const days = Day.findAll({ where: { weekId: week.id }, order: [['order', 'ASC']] });
+
+          return {
+            dbId: week.id,
+            label: week.label,
+            name: week.name,
+            days: days.map((day) => {
+              const reading = ReadingItem.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] });
+              const questions = QuizQuestion.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] });
+              const steps = HandsOnStep.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] });
+              const aiCheck = AiCheck.findOne({ where: { dayId: day.id } });
+
+              return {
+                dbId: day.id,
+                day: day.dayLabel,
+                title: day.title,
+                goal: day.goal,
+                reading: reading.map((r) => ({
+                  title: r.title,
+                  body: r.body,
+                  link: r.link,
+                })),
+                activity: {
+                  type: day.activityType,
+                  questions: questions.map((q) => ({
+                    q: q.q,
+                    options: JSON.parse(q.options),
+                    answer: q.answer,
+                    explanation: q.explanation,
+                  })),
+                  steps: steps.map((s) => ({
+                    n: s.n,
+                    title: s.title,
+                    body: s.body,
+                    code: s.code,
+                  })),
+                  title: day.activityTitle,
+                  intro: day.activityIntro,
+                  prompt: day.aiPrompt,
+                  checkGoal: day.aiCheckGoal,
+                  aiCheck: aiCheck
+                    ? { prompt: aiCheck.prompt, checkGoal: aiCheck.checkGoal }
+                    : undefined,
+                },
+              };
+            }),
+          };
+        }),
+      };
+    });
 
     return NextResponse.json(transformed);
   } catch (error) {

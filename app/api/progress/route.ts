@@ -1,13 +1,13 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { Progress } from "@/lib/db";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const rows = await prisma.progress.findMany({
+  const rows = await Progress.findAll({
     where: { userId: session.user.id },
-    select: { phase: true, week: true, day: true },
+    attributes: ['phase', 'week', 'day'],
   });
 
   return Response.json({ completed: rows });
@@ -22,10 +22,11 @@ export async function POST(req: Request) {
     return Response.json({ error: "phase, week, day required" }, { status: 400 });
   }
 
-  await prisma.progress.upsert({
-    where: { userId_phase_week_day: { userId: session.user.id, phase, week, day } },
-    create: { userId: session.user.id, phase, week, day },
-    update: {},
+  await Progress.upsert({
+    userId: session.user.id,
+    phase,
+    week,
+    day,
   });
 
   return Response.json({ ok: true });

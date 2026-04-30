@@ -4,7 +4,7 @@
  */
 
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { User } from "@/lib/db";
 
 export async function requireAdmin() {
   const session = await auth();
@@ -13,9 +13,9 @@ export async function requireAdmin() {
     return null;
   }
   
-  const user = await prisma.user.findUnique({ 
+  const user = await User.findOne({ 
     where: { id: session.user.id },
-    select: { id: true, email: true, name: true, role: true }
+    attributes: ['id', 'email', 'name', 'role']
   });
   
   if (user?.role !== "admin") {

@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { prisma } from "@/lib/db";
+import { Week, Day } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   const admin = await requireAdmin();
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify week exists
-    const week = await prisma.week.findUnique({
+    const week = await Week.findOne({
       where: { id: weekId },
     });
 
@@ -37,27 +37,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the max order value within this week and add 1
-    const maxDay = await prisma.day.findFirst({
+    const maxDay = await Day.findOne({
       where: { weekId },
-      orderBy: { order: "desc" },
-      select: { order: true },
+      order: [['order', 'DESC']],
+      attributes: ['order'],
     });
     const nextOrder = maxDay ? maxDay.order + 1 : 0;
 
-    const day = await prisma.day.create({
-      data: {
-        weekId,
-        order: nextOrder,
-        dayLabel,
-        title,
-        goal,
-        activityType,
-        // Optional fields default to null
-        activityTitle: null,
-        activityIntro: null,
-        aiPrompt: null,
-        aiCheckGoal: null,
-      },
+    const day = await Day.create({
+      weekId,
+      order: nextOrder,
+      dayLabel,
+      title,
+      goal,
+      activityType,
+      // Optional fields default to null
+      activityTitle: null,
+      activityIntro: null,
+      aiPrompt: null,
+      aiCheckGoal: null,
     });
 
     return NextResponse.json(day, { status: 201 });

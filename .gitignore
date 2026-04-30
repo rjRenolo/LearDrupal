@@ -42,6 +42,6 @@ next-env.d.ts
 
 /app/generated/prisma
 
-/scripts/*
+/scripts/create-admin-user.ts
 dev.db
 /documents/*
