@@ -1,45 +1,37 @@
 import { Phase as PhaseModel, Week as WeekModel, Day as DayModel, ReadingItem as ReadingItemModel, QuizQuestion as QuizQuestionModel, HandsOnStep as HandsOnStepModel, AiCheck as AiCheckModel } from "./db";
-import type {
-  Phase,
-  Week,
-  Day,
-  Activity,
-  ReadingItem,
-  QuizQuestion,
-  HandsOnStep,
-  AiCheck,
-} from "./curriculum";
+import type { Phase, Week, Day, Activity, ReadingItem, QuizQuestion, HandsOnStep, AiCheck } from "./curriculum";
 
-export function getCurriculumFromDB(): Phase[] {
-  const phases = PhaseModel.findAll({ order: [['order', 'ASC']] });
+export async function getCurriculumFromDB(): Promise<Phase[]> {
+  const phases = await PhaseModel.findAll({ order: [['order', 'ASC']] });
 
-  return phases.map(phaseData => {
-    const weeks = WeekModel.findAll({ where: { phaseId: phaseData.id }, order: [['order', 'ASC']] });
+  return Promise.all(phases.map(async phaseData => {
+    const weeks = await WeekModel.findAll({ where: { phaseId: phaseData.id }, order: [['order', 'ASC']] });
 
     return transformPhase({
       ...phaseData,
-      weeks: weeks.map(weekData => {
-        const days = DayModel.findAll({ where: { weekId: weekData.id }, order: [['order', 'ASC']] });
+      weeks: await Promise.all(weeks.map(async weekData => {
+        const days = await DayModel.findAll({ where: { weekId: weekData.id }, order: [['order', 'ASC']] });
 
         return {
           ...weekData,
-          days: days.map(dayData => {
-            const reading = ReadingItemModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] });
-            const questions = QuizQuestionModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] });
-            const steps = HandsOnStepModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] });
-            const aiCheck = AiCheckModel.findOne({ where: { dayId: dayData.id } });
-
+          days: await Promise.all(days.map(async dayData => {
+            const [reading, questions, steps, aiCheck] = await Promise.all([
+              ReadingItemModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] }),
+              QuizQuestionModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] }),
+              HandsOnStepModel.findAll({ where: { dayId: dayData.id }, order: [['order', 'ASC']] }),
+              AiCheckModel.findOne({ where: { dayId: dayData.id } }),
+            ]);
             return { ...dayData, reading, questions, steps, aiCheck };
-          }),
+          })),
         };
-      }),
+      })),
     });
-  });
+  }));
 }
 
 function transformPhase(phaseData: any): Phase {
   return {
-    id: phaseData.order, // Use order as the id for backward compatibility
+    id: phaseData.order,
     label: phaseData.label,
     name: phaseData.name,
     color: phaseData.color,
@@ -66,9 +58,6 @@ function transformDay(dayData: any): Day {
   };
 }
 
-/**
- * Transform reading item (already matches interface)
- */
 function transformReadingItem(item: any): ReadingItem {
   return {
     title: item.title,
@@ -77,32 +66,22 @@ function transformReadingItem(item: any): ReadingItem {
   };
 }
 
-/**
- * Reconstruct Activity object from flat Day fields + nested relations
- */
 function transformActivity(dayData: any): Activity {
-  const activity: Activity = {
-    type: dayData.activityType,
-  };
+  const activity: Activity = { type: dayData.activityType };
 
-  // Quiz questions (quiz + combined)
   if (dayData.questions && dayData.questions.length > 0) {
     activity.questions = dayData.questions.map(transformQuizQuestion);
   }
 
-  // Hands-on steps (hands_on + combined)
   if (dayData.steps && dayData.steps.length > 0) {
     activity.title = dayData.activityTitle ?? undefined;
     activity.intro = dayData.activityIntro ?? undefined;
     activity.steps = dayData.steps.map(transformHandsOnStep);
-
-    // AiCheck (hands_on + combined)
     if (dayData.aiCheck) {
       activity.aiCheck = transformAiCheck(dayData.aiCheck);
     }
   }
 
-  // ai_open type
   if (dayData.activityType === "ai_open") {
     activity.prompt = dayData.aiPrompt ?? undefined;
     activity.checkGoal = dayData.aiCheckGoal ?? undefined;
@@ -111,21 +90,15 @@ function transformActivity(dayData: any): Activity {
   return activity;
 }
 
-/**
- * Transform quiz question — parse JSON options
- */
 function transformQuizQuestion(q: any): QuizQuestion {
   return {
     q: q.q,
-    options: JSON.parse(q.options), // Parse JSON string back to array
+    options: JSON.parse(q.options),
     answer: q.answer,
     explanation: q.explanation,
   };
 }
 
-/**
- * Transform hands-on step (already matches interface)
- */
 function transformHandsOnStep(step: any): HandsOnStep {
   return {
     n: step.n,
@@ -135,9 +108,6 @@ function transformHandsOnStep(step: any): HandsOnStep {
   };
 }
 
-/**
- * Transform AI check (already matches interface)
- */
 function transformAiCheck(check: any): AiCheck {
   return {
     prompt: check.prompt,

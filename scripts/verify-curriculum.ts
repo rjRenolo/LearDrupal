@@ -8,16 +8,21 @@ async function main() {
 
   console.log("🔍 Verifying seeded curriculum data...\n");
 
-  console.log("📊 Record counts:");
-  console.log(`  Phases: ${Phase.count()}`);
-  console.log(`  Weeks: ${Week.count()}`);
-  console.log(`  Days: ${Day.count()}`);
-  console.log(`  Reading Items: ${ReadingItem.count()}`);
-  console.log(`  Quiz Questions: ${QuizQuestion.count()}`);
-  console.log(`  Hands-On Steps: ${HandsOnStep.count()}`);
-  console.log(`  AI Checks: ${AiCheck.count()}\n`);
+  const [phases, weeks, days, readingItems, quizQuestions, handsOnSteps, aiChecks] = await Promise.all([
+    Phase.count(), Week.count(), Day.count(),
+    ReadingItem.count(), QuizQuestion.count(), HandsOnStep.count(), AiCheck.count(),
+  ]);
 
-  const phase0 = Phase.findOne({ where: { order: 0 } });
+  console.log("📊 Record counts:");
+  console.log(`  Phases: ${phases}`);
+  console.log(`  Weeks: ${weeks}`);
+  console.log(`  Days: ${days}`);
+  console.log(`  Reading Items: ${readingItems}`);
+  console.log(`  Quiz Questions: ${quizQuestions}`);
+  console.log(`  Hands-On Steps: ${handsOnSteps}`);
+  console.log(`  AI Checks: ${aiChecks}\n`);
+
+  const phase0 = await Phase.findOne({ where: { order: 0 } });
   if (!phase0) {
     console.error("❌ Phase 0 not found!");
     process.exit(1);
@@ -27,15 +32,19 @@ async function main() {
   console.log(`  ${phase0.label}: ${phase0.name}`);
   console.log(`  Color: ${phase0.color}, BG: ${phase0.bg}`);
 
-  const firstWeek = Week.findAll({ where: { phaseId: phase0.id }, order: [['order', 'ASC']] })[0];
+  const allWeeks = await Week.findAll({ where: { phaseId: phase0.id }, order: [['order', 'ASC']] });
+  const firstWeek = allWeeks[0];
   if (firstWeek) {
     console.log(`  First week: ${firstWeek.label} — ${firstWeek.name}`);
 
-    const firstDay = Day.findAll({ where: { weekId: firstWeek.id }, order: [['order', 'ASC']] })[0];
+    const allDays = await Day.findAll({ where: { weekId: firstWeek.id }, order: [['order', 'ASC']] });
+    const firstDay = allDays[0];
     if (firstDay) {
-      const reading = ReadingItem.findAll({ where: { dayId: firstDay.id }, order: [['order', 'ASC']] });
-      const questions = QuizQuestion.findAll({ where: { dayId: firstDay.id }, order: [['order', 'ASC']] });
-      const steps = HandsOnStep.findAll({ where: { dayId: firstDay.id }, order: [['order', 'ASC']] });
+      const [reading, questions, steps] = await Promise.all([
+        ReadingItem.findAll({ where: { dayId: firstDay.id }, order: [['order', 'ASC']] }),
+        QuizQuestion.findAll({ where: { dayId: firstDay.id }, order: [['order', 'ASC']] }),
+        HandsOnStep.findAll({ where: { dayId: firstDay.id }, order: [['order', 'ASC']] }),
+      ]);
 
       console.log(`  First day: ${firstDay.dayLabel} — ${firstDay.title}`);
       console.log(`    Activity type: ${firstDay.activityType}`);

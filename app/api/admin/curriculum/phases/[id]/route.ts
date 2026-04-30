@@ -18,21 +18,22 @@ export async function DELETE(
   }
 
   try {
-    const phase = Phase.findOne({ where: { id: phaseId } });
+    const phase = await Phase.findOne({ where: { id: phaseId } });
     if (!phase) {
       return NextResponse.json({ error: "Phase not found" }, { status: 404 });
     }
 
-    const weeks = Week.findAll({ where: { phaseId } });
-    const deletedWeeks = weeks.length;
-    const deletedDays = weeks.reduce(
-      (sum, w) => sum + Day.findAll({ where: { weekId: w.id } }).length,
-      0
-    );
+    const weeks = await Week.findAll({ where: { phaseId } });
+    const dayCounts = await Promise.all(weeks.map(w => Day.findAll({ where: { weekId: w.id } })));
+    const deletedDays = dayCounts.reduce((sum, days) => sum + days.length, 0);
 
-    Phase.destroy({ where: { id: phaseId } });
+    await Phase.destroy({ where: { id: phaseId } });
 
-    return NextResponse.json({ message: "Phase deleted successfully", deletedWeeks, deletedDays }, { status: 200 });
+    return NextResponse.json({
+      message: "Phase deleted successfully",
+      deletedWeeks: weeks.length,
+      deletedDays,
+    }, { status: 200 });
   } catch (error) {
     console.error("Error deleting phase:", error);
     return NextResponse.json({ error: "Failed to delete phase" }, { status: 500 });

@@ -25,20 +25,20 @@ export async function POST(
       return NextResponse.json({ error: "Direction must be 'up' or 'down'" }, { status: 400 });
     }
 
-    const phase = Phase.findOne({ where: { id: phaseId } });
+    const phase = await Phase.findOne({ where: { id: phaseId } });
     if (!phase) {
       return NextResponse.json({ error: "Phase not found" }, { status: 404 });
     }
 
     const targetOrder = direction === "up" ? phase.order - 1 : phase.order + 1;
-    const adjacentPhase = Phase.findOne({ where: { order: targetOrder } });
+    const adjacentPhase = await Phase.findOne({ where: { order: targetOrder } });
     if (!adjacentPhase) {
       return NextResponse.json({ error: "Cannot move phase in that direction" }, { status: 400 });
     }
 
     await db.transaction(async () => {
-      Phase.update({ order: targetOrder }, { where: { id: phaseId } });
-      Phase.update({ order: phase.order }, { where: { id: adjacentPhase.id } });
+      await Phase.update({ order: targetOrder }, { where: { id: phaseId } });
+      await Phase.update({ order: phase.order }, { where: { id: adjacentPhase.id } });
     });
 
     return NextResponse.json({ success: true });

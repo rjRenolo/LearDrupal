@@ -18,16 +18,15 @@ export async function DELETE(
   }
 
   try {
-    const week = Week.findOne({ where: { id: weekId } });
+    const week = await Week.findOne({ where: { id: weekId } });
     if (!week) {
       return NextResponse.json({ error: "Week not found" }, { status: 404 });
     }
 
-    const deletedDays = Day.findAll({ where: { weekId } }).length;
+    const days = await Day.findAll({ where: { weekId } });
+    await Week.destroy({ where: { id: weekId } });
 
-    Week.destroy({ where: { id: weekId } });
-
-    return NextResponse.json({ message: "Week deleted successfully", deletedDays }, { status: 200 });
+    return NextResponse.json({ message: "Week deleted successfully", deletedDays: days.length }, { status: 200 });
   } catch (error) {
     console.error("Error deleting week:", error);
     return NextResponse.json({ error: "Failed to delete week" }, { status: 500 });

@@ -25,20 +25,20 @@ export async function POST(
       return NextResponse.json({ error: "Direction must be 'up' or 'down'" }, { status: 400 });
     }
 
-    const week = Week.findOne({ where: { id: weekId } });
+    const week = await Week.findOne({ where: { id: weekId } });
     if (!week) {
       return NextResponse.json({ error: "Week not found" }, { status: 404 });
     }
 
     const targetOrder = direction === "up" ? week.order - 1 : week.order + 1;
-    const adjacentWeek = Week.findOne({ where: { phaseId: week.phaseId, order: targetOrder } });
+    const adjacentWeek = await Week.findOne({ where: { phaseId: week.phaseId, order: targetOrder } });
     if (!adjacentWeek) {
       return NextResponse.json({ error: "Cannot move week in that direction" }, { status: 400 });
     }
 
     await db.transaction(async () => {
-      Week.update({ order: targetOrder }, { where: { id: weekId } });
-      Week.update({ order: week.order }, { where: { id: adjacentWeek.id } });
+      await Week.update({ order: targetOrder }, { where: { id: weekId } });
+      await Week.update({ order: week.order }, { where: { id: adjacentWeek.id } });
     });
 
     return NextResponse.json({ success: true });

@@ -9,10 +9,10 @@ export async function GET() {
   }
 
   try {
-    const phases = Phase.findAll({ order: [['order', 'ASC']] });
+    const phases = await Phase.findAll({ order: [['order', 'ASC']] });
 
-    const transformed = phases.map((phase) => {
-      const weeks = Week.findAll({ where: { phaseId: phase.id }, order: [['order', 'ASC']] });
+    const transformed = await Promise.all(phases.map(async (phase) => {
+      const weeks = await Week.findAll({ where: { phaseId: phase.id }, order: [['order', 'ASC']] });
 
       return {
         dbId: phase.id,
@@ -21,29 +21,27 @@ export async function GET() {
         name: phase.name,
         color: phase.color,
         bg: phase.bg,
-        weeks: weeks.map((week) => {
-          const days = Day.findAll({ where: { weekId: week.id }, order: [['order', 'ASC']] });
+        weeks: await Promise.all(weeks.map(async (week) => {
+          const days = await Day.findAll({ where: { weekId: week.id }, order: [['order', 'ASC']] });
 
           return {
             dbId: week.id,
             label: week.label,
             name: week.name,
-            days: days.map((day) => {
-              const reading = ReadingItem.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] });
-              const questions = QuizQuestion.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] });
-              const steps = HandsOnStep.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] });
-              const aiCheck = AiCheck.findOne({ where: { dayId: day.id } });
+            days: await Promise.all(days.map(async (day) => {
+              const [reading, questions, steps, aiCheck] = await Promise.all([
+                ReadingItem.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] }),
+                QuizQuestion.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] }),
+                HandsOnStep.findAll({ where: { dayId: day.id }, order: [['order', 'ASC']] }),
+                AiCheck.findOne({ where: { dayId: day.id } }),
+              ]);
 
               return {
                 dbId: day.id,
                 day: day.dayLabel,
                 title: day.title,
                 goal: day.goal,
-                reading: reading.map((r) => ({
-                  title: r.title,
-                  body: r.body,
-                  link: r.link,
-                })),
+                reading: reading.map((r) => ({ title: r.title, body: r.body, link: r.link })),
                 activity: {
                   type: day.activityType,
                   questions: questions.map((q) => ({
@@ -52,33 +50,23 @@ export async function GET() {
                     answer: q.answer,
                     explanation: q.explanation,
                   })),
-                  steps: steps.map((s) => ({
-                    n: s.n,
-                    title: s.title,
-                    body: s.body,
-                    code: s.code,
-                  })),
+                  steps: steps.map((s) => ({ n: s.n, title: s.title, body: s.body, code: s.code })),
                   title: day.activityTitle,
                   intro: day.activityIntro,
                   prompt: day.aiPrompt,
                   checkGoal: day.aiCheckGoal,
-                  aiCheck: aiCheck
-                    ? { prompt: aiCheck.prompt, checkGoal: aiCheck.checkGoal }
-                    : undefined,
+                  aiCheck: aiCheck ? { prompt: aiCheck.prompt, checkGoal: aiCheck.checkGoal } : undefined,
                 },
               };
-            }),
+            })),
           };
-        }),
+        })),
       };
-    });
+    }));
 
     return NextResponse.json(transformed);
   } catch (error) {
     console.error("Error fetching admin curriculum:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch curriculum" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch curriculum" }, { status: 500 });
   }
 }

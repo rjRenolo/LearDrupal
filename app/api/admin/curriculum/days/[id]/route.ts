@@ -18,19 +18,22 @@ export async function GET(
   }
 
   try {
-    const day = Day.findOne({ where: { id: dayId } });
+    const day = await Day.findOne({ where: { id: dayId } });
     if (!day) {
       return NextResponse.json({ error: "Day not found" }, { status: 404 });
     }
 
-    const week = Week.findOne({ where: { id: day.weekId } });
-    const phase = week ? Phase.findOne({ where: { id: week.phaseId } }) : null;
-    const reading = ReadingItem.findAll({ where: { dayId }, order: [['order', 'ASC']] });
-    const questions = QuizQuestion.findAll({ where: { dayId }, order: [['order', 'ASC']] });
-    const steps = HandsOnStep.findAll({ where: { dayId }, order: [['order', 'ASC']] });
-    const aiCheck = AiCheck.findOne({ where: { dayId } });
+    const [week, reading, questions, steps, aiCheck] = await Promise.all([
+      Week.findOne({ where: { id: day.weekId } }),
+      ReadingItem.findAll({ where: { dayId }, order: [['order', 'ASC']] }),
+      QuizQuestion.findAll({ where: { dayId }, order: [['order', 'ASC']] }),
+      HandsOnStep.findAll({ where: { dayId }, order: [['order', 'ASC']] }),
+      AiCheck.findOne({ where: { dayId } }),
+    ]);
 
-    const transformed = {
+    const phase = week ? await Phase.findOne({ where: { id: week.phaseId } }) : null;
+
+    return NextResponse.json({
       id: day.id,
       weekId: day.weekId,
       order: day.order,
@@ -46,17 +49,11 @@ export async function GET(
       week: week ? { id: week.id, label: week.label, name: week.name } : null,
       reading: reading.map((r) => ({ id: r.id, title: r.title, body: r.body, link: r.link })),
       questions: questions.map((q) => ({
-        id: q.id,
-        q: q.q,
-        options: JSON.parse(q.options),
-        answer: q.answer,
-        explanation: q.explanation,
+        id: q.id, q: q.q, options: JSON.parse(q.options), answer: q.answer, explanation: q.explanation,
       })),
       steps: steps.map((s) => ({ id: s.id, n: s.n, title: s.title, body: s.body, code: s.code })),
       aiCheck: aiCheck ? { id: aiCheck.id, prompt: aiCheck.prompt, checkGoal: aiCheck.checkGoal } : null,
-    };
-
-    return NextResponse.json(transformed);
+    });
   } catch (error) {
     console.error("Error fetching day:", error);
     return NextResponse.json({ error: "Failed to fetch day" }, { status: 500 });
@@ -82,7 +79,7 @@ export async function PUT(
     const body = await request.json();
 
     await db.transaction(async () => {
-      Day.update(
+      await Day.update(
         {
           dayLabel: body.dayLabel,
           title: body.title,
@@ -96,40 +93,35 @@ export async function PUT(
         { where: { id: dayId } }
       );
 
-      ReadingItem.destroy({ where: { dayId } });
+      await ReadingItem.destroy({ where: { dayId } });
       if (body.reading && body.reading.length > 0) {
         for (let idx = 0; idx < body.reading.length; idx++) {
           const r = body.reading[idx];
-          ReadingItem.create({ dayId, order: idx, title: r.title, body: r.body, link: r.link || null });
+          await ReadingItem.create({ dayId, order: idx, title: r.title, body: r.body, link: r.link || null });
         }
       }
 
-      QuizQuestion.destroy({ where: { dayId } });
+      await QuizQuestion.destroy({ where: { dayId } });
       if (body.questions && body.questions.length > 0) {
         for (let idx = 0; idx < body.questions.length; idx++) {
           const q = body.questions[idx];
-          QuizQuestion.create({
-            dayId,
-            order: idx,
-            q: q.q,
-            options: JSON.stringify(q.options),
-            answer: q.answer,
-            explanation: q.explanation,
+          await QuizQuestion.create({
+            dayId, order: idx, q: q.q, options: JSON.stringify(q.options), answer: q.answer, explanation: q.explanation,
           });
         }
       }
 
-      HandsOnStep.destroy({ where: { dayId } });
+      await HandsOnStep.destroy({ where: { dayId } });
       if (body.steps && body.steps.length > 0) {
         for (let idx = 0; idx < body.steps.length; idx++) {
           const s = body.steps[idx];
-          HandsOnStep.create({ dayId, order: idx, n: s.n, title: s.title, body: s.body || null, code: s.code || null });
+          await HandsOnStep.create({ dayId, order: idx, n: s.n, title: s.title, body: s.body || null, code: s.code || null });
         }
       }
 
-      AiCheck.destroy({ where: { dayId } });
+      await AiCheck.destroy({ where: { dayId } });
       if (body.aiCheck && body.aiCheck.prompt && body.aiCheck.checkGoal) {
-        AiCheck.create({ dayId, prompt: body.aiCheck.prompt, checkGoal: body.aiCheck.checkGoal });
+        await AiCheck.create({ dayId, prompt: body.aiCheck.prompt, checkGoal: body.aiCheck.checkGoal });
       }
     });
 
@@ -156,21 +148,25 @@ export async function DELETE(
   }
 
   try {
-    const day = Day.findOne({ where: { id: dayId } });
+    const day = await Day.findOne({ where: { id: dayId } });
     if (!day) {
       return NextResponse.json({ error: "Day not found" }, { status: 404 });
     }
 
-    const deletedReadings = ReadingItem.findAll({ where: { dayId } }).length;
-    const deletedQuestions = QuizQuestion.findAll({ where: { dayId } }).length;
-    const deletedSteps = HandsOnStep.findAll({ where: { dayId } }).length;
+    const [readings, questions, steps] = await Promise.all([
+      ReadingItem.findAll({ where: { dayId } }),
+      QuizQuestion.findAll({ where: { dayId } }),
+      HandsOnStep.findAll({ where: { dayId } }),
+    ]);
 
-    Day.destroy({ where: { id: dayId } });
+    await Day.destroy({ where: { id: dayId } });
 
-    return NextResponse.json(
-      { message: "Day deleted successfully", deletedReadings, deletedQuestions, deletedSteps },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      message: "Day deleted successfully",
+      deletedReadings: readings.length,
+      deletedQuestions: questions.length,
+      deletedSteps: steps.length,
+    }, { status: 200 });
   } catch (error) {
     console.error("Error deleting day:", error);
     return NextResponse.json({ error: "Failed to delete day" }, { status: 500 });

@@ -1,49 +1,63 @@
-import Database from 'better-sqlite3';
-import path from 'path';
+import { Pool, PoolConfig } from 'pg';
+import { AsyncLocalStorage } from 'async_hooks';
 import { randomUUID } from 'crypto';
 
-const dbPath = path.join(process.cwd(), 'dev.db');
-const db = new Database(dbPath);
+const poolConfig: PoolConfig = {
+  connectionString: process.env.DATABASE_URL,
+};
 
-// Enable foreign keys
-db.pragma('foreign_keys = ON');
+// Opt-in SSL: set DATABASE_SSL=true for managed databases (Heroku, Render, Supabase, etc.)
+if (process.env.DATABASE_SSL === 'true') {
+  poolConfig.ssl = { rejectUnauthorized: false };
+}
 
-// Initialize promise to track initialization state
+const pool = new Pool(poolConfig);
+
+type DbClient = { query: (text: string, values?: any[]) => Promise<{ rows: any[] }> };
+const txStorage = new AsyncLocalStorage<DbClient>();
+
+function getDb(): DbClient {
+  return txStorage.getStore() ?? pool;
+}
+
+// Double-quote camelCase identifiers and reserved words for PostgreSQL
+function q(col: string): string {
+  if (/[A-Z]/.test(col) || col === 'order') return `"${col}"`;
+  return col;
+}
+
 let initPromise: Promise<void> | null = null;
 
-// Initialize the database and create tables
-export async function initDatabase() {
+export async function initDatabase(): Promise<void> {
   if (!initPromise) {
     initPromise = (async () => {
       try {
-        // Create tables
-        db.exec(`
+        await pool.query(`
           CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE NOT NULL,
             name TEXT,
             password TEXT NOT NULL,
-            apiKey TEXT,
+            "apiKey" TEXT,
             role TEXT DEFAULT 'student',
-            createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-            updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+            "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+            "updatedAt" TIMESTAMPTZ DEFAULT NOW()
           );
 
           CREATE TABLE IF NOT EXISTS progress (
             id TEXT PRIMARY KEY,
-            userId TEXT NOT NULL,
+            "userId" TEXT NOT NULL REFERENCES users(id),
             phase INTEGER NOT NULL,
             week INTEGER NOT NULL,
             day INTEGER NOT NULL,
-            createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
-            updatedAt TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (userId) REFERENCES users(id),
-            UNIQUE(userId, phase, week, day)
+            "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+            "updatedAt" TIMESTAMPTZ DEFAULT NOW(),
+            UNIQUE("userId", phase, week, day)
           );
 
           CREATE TABLE IF NOT EXISTS phases (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            \`order\` INTEGER NOT NULL,
+            id SERIAL PRIMARY KEY,
+            "order" INTEGER NOT NULL,
             label TEXT NOT NULL,
             name TEXT NOT NULL,
             color TEXT NOT NULL,
@@ -51,70 +65,63 @@ export async function initDatabase() {
           );
 
           CREATE TABLE IF NOT EXISTS weeks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            phaseId INTEGER NOT NULL,
-            \`order\` INTEGER NOT NULL,
+            id SERIAL PRIMARY KEY,
+            "phaseId" INTEGER NOT NULL REFERENCES phases(id) ON DELETE CASCADE,
+            "order" INTEGER NOT NULL,
             label TEXT NOT NULL,
-            name TEXT NOT NULL,
-            FOREIGN KEY (phaseId) REFERENCES phases(id) ON DELETE CASCADE
+            name TEXT NOT NULL
           );
 
           CREATE TABLE IF NOT EXISTS days (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            weekId INTEGER NOT NULL,
-            \`order\` INTEGER NOT NULL,
-            dayLabel TEXT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            "weekId" INTEGER NOT NULL REFERENCES weeks(id) ON DELETE CASCADE,
+            "order" INTEGER NOT NULL,
+            "dayLabel" TEXT NOT NULL,
             title TEXT NOT NULL,
             goal TEXT NOT NULL,
-            activityType TEXT NOT NULL,
-            activityTitle TEXT,
-            activityIntro TEXT,
-            aiPrompt TEXT,
-            aiCheckGoal TEXT,
-            FOREIGN KEY (weekId) REFERENCES weeks(id) ON DELETE CASCADE
+            "activityType" TEXT NOT NULL,
+            "activityTitle" TEXT,
+            "activityIntro" TEXT,
+            "aiPrompt" TEXT,
+            "aiCheckGoal" TEXT
           );
 
           CREATE TABLE IF NOT EXISTS reading_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            dayId INTEGER NOT NULL,
-            \`order\` INTEGER NOT NULL,
+            id SERIAL PRIMARY KEY,
+            "dayId" INTEGER NOT NULL REFERENCES days(id) ON DELETE CASCADE,
+            "order" INTEGER NOT NULL,
             title TEXT NOT NULL,
             body TEXT NOT NULL,
-            link TEXT,
-            FOREIGN KEY (dayId) REFERENCES days(id) ON DELETE CASCADE
+            link TEXT
           );
 
           CREATE TABLE IF NOT EXISTS quiz_questions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            dayId INTEGER NOT NULL,
-            \`order\` INTEGER NOT NULL,
+            id SERIAL PRIMARY KEY,
+            "dayId" INTEGER NOT NULL REFERENCES days(id) ON DELETE CASCADE,
+            "order" INTEGER NOT NULL,
             q TEXT NOT NULL,
             options TEXT NOT NULL,
             answer INTEGER NOT NULL,
-            explanation TEXT NOT NULL,
-            FOREIGN KEY (dayId) REFERENCES days(id) ON DELETE CASCADE
+            explanation TEXT NOT NULL
           );
 
           CREATE TABLE IF NOT EXISTS hands_on_steps (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            dayId INTEGER NOT NULL,
-            \`order\` INTEGER NOT NULL,
+            id SERIAL PRIMARY KEY,
+            "dayId" INTEGER NOT NULL REFERENCES days(id) ON DELETE CASCADE,
+            "order" INTEGER NOT NULL,
             n INTEGER NOT NULL,
             title TEXT NOT NULL,
             body TEXT,
-            code TEXT,
-            FOREIGN KEY (dayId) REFERENCES days(id) ON DELETE CASCADE
+            code TEXT
           );
 
           CREATE TABLE IF NOT EXISTS ai_checks (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            dayId INTEGER NOT NULL UNIQUE,
+            id SERIAL PRIMARY KEY,
+            "dayId" INTEGER NOT NULL UNIQUE REFERENCES days(id) ON DELETE CASCADE,
             prompt TEXT NOT NULL,
-            checkGoal TEXT NOT NULL,
-            FOREIGN KEY (dayId) REFERENCES days(id) ON DELETE CASCADE
+            "checkGoal" TEXT NOT NULL
           );
         `);
-        
         console.log('✅ Database initialized successfully');
       } catch (error) {
         console.error('❌ Unable to initialize the database:', error);
@@ -126,105 +133,112 @@ export async function initDatabase() {
   return initPromise;
 }
 
-// Simple model wrapper
-function createModel<T extends Record<string, any>>(tableName: string) {
+function createModel<T extends Record<string, any>>(tableName: string, conflictKeys?: string[]) {
   return {
-    findOne: (options: { where?: Record<string, any>; attributes?: string[]; order?: [string, string][] }) => {
-      const cols = options.attributes ? options.attributes.join(', ') : '*';
+    findOne: async (options: { where?: Record<string, any>; attributes?: string[]; order?: [string, string][] }): Promise<T | undefined> => {
+      const cols = options.attributes ? options.attributes.map(q).join(', ') : '*';
       let sql = `SELECT ${cols} FROM ${tableName}`;
       const values: any[] = [];
       if (options.where) {
         const keys = Object.keys(options.where);
-        const where = keys.map(k => `${k === 'order' ? '`order`' : k} = ?`).join(' AND ');
-        sql += ` WHERE ${where}`;
-        values.push(...keys.map(k => options.where![k]));
+        if (keys.length > 0) {
+          sql += ` WHERE ${keys.map((k, i) => `${q(k)} = $${i + 1}`).join(' AND ')}`;
+          values.push(...keys.map(k => options.where![k]));
+        }
       }
       if (options.order) {
-        sql += ` ORDER BY ${options.order.map(([col, dir]) => `\`${col}\` ${dir}`).join(', ')}`;
+        sql += ` ORDER BY ${options.order.map(([col, dir]) => `${q(col)} ${dir}`).join(', ')}`;
       }
       sql += ` LIMIT 1`;
-      const stmt = db.prepare(sql);
-      return stmt.get(...values) as T | undefined;
+      const result = await getDb().query(sql, values);
+      return result.rows[0] as T | undefined;
     },
-    
-    findAll: (options?: { where?: Record<string, any>; attributes?: string[]; order?: [string, string][];  include?: any[] }) => {
-      let sql = `SELECT ${options?.attributes ? options.attributes.join(', ') : '*'} FROM ${tableName}`;
+
+    findAll: async (options?: { where?: Record<string, any>; attributes?: string[]; order?: [string, string][] }): Promise<T[]> => {
+      const cols = options?.attributes ? options.attributes.map(q).join(', ') : '*';
+      let sql = `SELECT ${cols} FROM ${tableName}`;
       const values: any[] = [];
-      
       if (options?.where) {
-        const keys = Object.keys(options?.where);
-        const where = keys.map(k => `${k === 'order' ? '`order`' : k} = ?`).join(' AND ');
-        sql += ` WHERE ${where}`;
-        values.push(...keys.map(k => options.where![k]));
+        const keys = Object.keys(options.where);
+        if (keys.length > 0) {
+          sql += ` WHERE ${keys.map((k, i) => `${q(k)} = $${i + 1}`).join(' AND ')}`;
+          values.push(...keys.map(k => options.where![k]));
+        }
       }
-      
       if (options?.order) {
-        sql += ` ORDER BY ${options.order.map(([col, dir]) => `\`${col}\` ${dir}`).join(', ')}`;
+        sql += ` ORDER BY ${options.order.map(([col, dir]) => `${q(col)} ${dir}`).join(', ')}`;
       }
-      
-      const stmt = db.prepare(sql);
-      return stmt.all(...values) as T[];
+      const result = await getDb().query(sql, values);
+      return result.rows as T[];
     },
-    
-    create: (data: Partial<T>) => {
-      const id = data.id || (tableName === 'users' || tableName === 'progress' ? randomUUID() : undefined);
-      const fullData = id ? { ...data, id } : data;
-      // Filter out timestamp fields - database handles them automatically
+
+    create: async (data: Partial<T>): Promise<T> => {
+      const id = (data as any).id || (tableName === 'users' || tableName === 'progress' ? randomUUID() : undefined);
+      const fullData = id ? { ...data, id } : { ...data };
       const keys = Object.keys(fullData).filter(k => k !== 'createdAt' && k !== 'updatedAt');
-      // Escape reserved keywords
-      const escapedKeys = keys.map(k => k === 'order' ? '`order`' : k);
-      const placeholders = keys.map(() => '?').join(', ');
-      const stmt = db.prepare(`INSERT INTO ${tableName} (${escapedKeys.join(', ')}) VALUES (${placeholders})`);
-      const result = stmt.run(...keys.map(k => fullData[k as keyof typeof fullData]));
-      const finalId = id || result.lastInsertRowid;
-      return { ...fullData, id: finalId } as any as T;
+      const cols = keys.map(q).join(', ');
+      const vals = keys.map((_, i) => `$${i + 1}`).join(', ');
+      const result = await getDb().query(
+        `INSERT INTO ${tableName} (${cols}) VALUES (${vals}) RETURNING *`,
+        keys.map(k => fullData[k])
+      );
+      return result.rows[0] as T;
     },
-    
-    update: (data: Partial<T>, options: { where: Record<string, any> }) => {
+
+    update: async (data: Partial<T>, options: { where: Record<string, any> }): Promise<[number]> => {
       const dataKeys = Object.keys(data);
-      // Escape reserved keywords
-      const set = dataKeys.map(k => `${k === 'order' ? '`order`' : k} = ?`).join(', ');
+      const set = dataKeys.map((k, i) => `${q(k)} = $${i + 1}`).join(', ');
       const whereKeys = Object.keys(options.where);
-      const where = whereKeys.map(k => `${k === 'order' ? '`order`' : k} = ?`).join(' AND ');
-      const stmt = db.prepare(`UPDATE ${tableName} SET ${set} WHERE ${where}`);
-      stmt.run(...dataKeys.map(k => data[k as keyof typeof data]), ...whereKeys.map(k => options.where[k]));
+      const where = whereKeys.map((k, i) => `${q(k)} = $${dataKeys.length + i + 1}`).join(' AND ');
+      await getDb().query(
+        `UPDATE ${tableName} SET ${set} WHERE ${where}`,
+        [...dataKeys.map(k => data[k as keyof typeof data]), ...whereKeys.map(k => options.where[k])]
+      );
       return [1];
     },
-    
-    destroy: (options: { where: Record<string, any>; truncate?: boolean }) => {
+
+    destroy: async (options: { where?: Record<string, any>; truncate?: boolean }): Promise<void> => {
       if (options.truncate) {
-        db.prepare(`DELETE FROM ${tableName}`).run();
+        await getDb().query(`TRUNCATE ${tableName} RESTART IDENTITY CASCADE`);
         return;
       }
-      const keys = Object.keys(options.where);
+      const keys = Object.keys(options.where ?? {});
       if (keys.length === 0) {
-        db.prepare(`DELETE FROM ${tableName}`).run();
+        await getDb().query(`DELETE FROM ${tableName}`);
         return;
       }
-      const where = keys.map(k => `${k === 'order' ? '`order`' : k} = ?`).join(' AND ');
-      const stmt = db.prepare(`DELETE FROM ${tableName} WHERE ${where}`);
-      stmt.run(...keys.map(k => options.where[k]));
+      const where = keys.map((k, i) => `${q(k)} = $${i + 1}`).join(' AND ');
+      await getDb().query(
+        `DELETE FROM ${tableName} WHERE ${where}`,
+        keys.map(k => (options.where ?? {})[k])
+      );
     },
-    
-    upsert: (data: Partial<T>) => {
-      const keys = Object.keys(data);
-      const placeholders = keys.map(() => '?').join(', ');
-      const updates = keys.filter(k => k !== 'id').map(k => `${k} = excluded.${k}`).join(', ');
-      const stmt = db.prepare(`INSERT INTO ${tableName} (${keys.join(', ')}) VALUES (${placeholders}) ON CONFLICT DO UPDATE SET ${updates}`);
-      stmt.run(...keys.map(k => data[k as keyof typeof data]));
-      return [data, true];
+
+    upsert: async (data: Partial<T>): Promise<[Partial<T>, boolean]> => {
+      const id = (data as any).id || (tableName === 'users' || tableName === 'progress' ? randomUUID() : undefined);
+      const fullData = id ? { ...data, id } : { ...data };
+      const keys = Object.keys(fullData);
+      const cols = keys.map(q).join(', ');
+      const vals = keys.map((_, i) => `$${i + 1}`).join(', ');
+      const targets = (conflictKeys ?? ['id']).map(q).join(', ');
+      const updateCols = keys.filter(k => !(conflictKeys ?? ['id']).includes(k) && k !== 'id');
+      const updates = updateCols.map(k => `${q(k)} = EXCLUDED.${q(k)}`).join(', ');
+      const sql = updates.length > 0
+        ? `INSERT INTO ${tableName} (${cols}) VALUES (${vals}) ON CONFLICT (${targets}) DO UPDATE SET ${updates}`
+        : `INSERT INTO ${tableName} (${cols}) VALUES (${vals}) ON CONFLICT (${targets}) DO NOTHING`;
+      await getDb().query(sql, keys.map(k => fullData[k]));
+      return [fullData, true];
     },
-    
-    count: () => {
-      const stmt = db.prepare(`SELECT COUNT(*) as count FROM ${tableName}`);
-      return (stmt.get() as { count: number }).count;
+
+    count: async (): Promise<number> => {
+      const result = await getDb().query(`SELECT COUNT(*)::int AS count FROM ${tableName}`);
+      return result.rows[0].count;
     },
   };
 }
 
-// Export models
 export const User = createModel<any>('users');
-export const Progress = createModel<any>('progress');
+export const Progress = createModel<any>('progress', ['userId', 'phase', 'week', 'day']);
 export const Phase = createModel<any>('phases');
 export const Week = createModel<any>('weeks');
 export const Day = createModel<any>('days');
@@ -234,16 +248,20 @@ export const HandsOnStep = createModel<any>('hands_on_steps');
 export const AiCheck = createModel<any>('ai_checks');
 
 export const sequelize = {
-  authenticate: async () => {},
+  authenticate: async () => { await pool.query('SELECT 1'); },
   sync: async () => {},
-  transaction: async (callback: (t: any) => Promise<void>) => {
-    db.exec('BEGIN');
+  // Uses AsyncLocalStorage so all model calls inside callback share the same PG client
+  transaction: async (callback: () => Promise<void>): Promise<void> => {
+    const client = await pool.connect();
+    await client.query('BEGIN');
     try {
-      await callback({});
-      db.exec('COMMIT');
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
+      await txStorage.run(client as any, callback);
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
   },
 };
