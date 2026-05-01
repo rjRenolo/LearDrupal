@@ -26,6 +26,8 @@ interface NewDay {
     questions?: QItem[];
     steps?: SItem[];
     aiCheck?: AiItem;
+    prompt?: string;
+    checkGoal?: string;
   };
 }
 
