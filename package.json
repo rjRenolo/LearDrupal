@@ -10,7 +10,8 @@
     "db:init": "tsx scripts/init-db.ts",
     "db:seed": "tsx scripts/seed-curriculum.ts",
     "deploy": "next build && npm run db:init && npm run db:seed",
-    "make-admin": "tsx scripts/make-admin.ts"
+    "make-admin": "tsx scripts/make-admin.ts",
+    "db:update-p0w2": "tsx scripts/update-phase0-week2.ts"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",
