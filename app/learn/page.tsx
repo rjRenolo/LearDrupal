@@ -156,8 +156,18 @@ function Quiz({
       ? new Array(questions.length).fill(true)
       : new Array(questions.length).fill(false),
   });
-  // Don't re-fire onAllDone for a restored completed quiz — the day is already marked done.
   const doneFiredRef = useRef(wasCompleted);
+
+  // Fire save + completion when all questions become submitted (moved out of setState to avoid Strict Mode double-invoke)
+  useEffect(() => {
+    if (state.submitted.every(Boolean) && !doneFiredRef.current) {
+      doneFiredRef.current = true;
+      const correct = state.answers.filter((a, i) => a === questions[i].answer).length;
+      const score = `${correct}/${questions.length}`;
+      onSaveResults?.(state.answers, score);
+      onAllDone?.();
+    }
+  }, [state.submitted]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const q = questions[state.idx];
 
@@ -174,14 +184,6 @@ function Quiz({
     setState(s => {
       const submitted = [...s.submitted];
       submitted[s.idx] = true;
-      const allDone = submitted.every(Boolean);
-      if (allDone && !doneFiredRef.current) {
-        doneFiredRef.current = true;
-        const correct = s.answers.filter((a, i) => a === questions[i].answer).length;
-        const score = `${correct}/${questions.length}`;
-        onSaveResults?.(s.answers, score);
-        onAllDone?.();
-      }
       return { ...s, submitted };
     });
   }
