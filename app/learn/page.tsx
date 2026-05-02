@@ -784,7 +784,6 @@ export default function LearnPage() {
                       <button
                         className={`week-group-header${pos.phase === pi && pos.week === wi ? " active" : ""}${weekLocked ? " locked" : ""}`}
                         onClick={() => {
-                          if (weekLocked) return;
                           setOpenWeeks(prev => {
                             const next = new Set(prev);
                             if (next.has(weekKey)) next.delete(weekKey);

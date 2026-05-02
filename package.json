@@ -9,7 +9,7 @@
     "lint": "eslint",
     "db:init": "tsx scripts/init-db.ts",
     "db:seed": "tsx scripts/seed-curriculum.ts",
-    "deploy": "next build && npm run db:init && npm run db:seed",
+    "deploy": "next build && npm run db:init",
     "make-admin": "tsx scripts/make-admin.ts",
     "db:update-p0w2": "tsx scripts/update-phase0-week2.ts"
   },
